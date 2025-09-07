@@ -1,39 +1,29 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Global Inter-Connect Jobs</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        width: 300px;
-        height: 400px;
-        margin: 0;
-        padding: 0;
-      }
-      #job-list {
-        height: 100%;
-        overflow-y: scroll;
-        padding: 10px;
-      }
-      .job {
-        border-bottom: 1px solid #ddd;
-        padding: 5px 0;
-      }
-      .job:nth-child(odd) {
-        background: #f9f9f9;
-      }
-      .job strong {
-        display: block;
-        margin-bottom: 2px;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="status">Loading jobs...</div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Inter-Connect Jobs</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Welcome screen -->
+  <div id="welcome-screen">
+    <h1>🌍 Welcome to Global Inter-Connect Jobs</h1>
+    <p>Connecting the global workforce.</p>
+    <button id="startBtn">View Jobs</button>
+  </div>
+
+  <!-- Jobs screen -->
+  <div id="jobs-screen" style="display:none;">
+    <h2>Latest Jobs</h2>
     <div id="job-list"></div>
-    <script src="popup.js"></script>
-  </body>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
 </html>
+
 
 
 

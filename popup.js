@@ -1,31 +1,38 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const status = document.getElementById("status");
+  const startBtn = document.getElementById("startBtn");
+  const welcomeScreen = document.getElementById("welcome-screen");
+  const jobsScreen = document.getElementById("jobs-screen");
   const jobList = document.getElementById("job-list");
 
-  // Show loading message
-  status.textContent = "Loading jobs...";
+  // Example jobs (fake data for now)
+  const jobs = [
+    { title: "Frontend Developer", company: "TechCorp", location: "Remote" },
+    { title: "Data Entry Specialist", company: "BizAssist", location: "New York" },
+    { title: "Customer Support Agent", company: "HelpDesk Inc.", location: "Remote" },
+    { title: "Junior Web Designer", company: "Creative Studio", location: "Los Angeles" },
+  ];
 
-  // Fetch jobs from jobs.json
-  fetch(chrome.runtime.getURL("jobs.json"))
-    .then(response => response.json())
-    .then(jobs => {
-      status.style.display = "none"; // hide loading message
+  // Show job list when "View Jobs" is clicked
+  if (startBtn) {
+    startBtn.addEventListener("click", () => {
+      welcomeScreen.style.display = "none";
+      jobsScreen.style.display = "block";
 
+      // Render jobs dynamically
+      jobList.innerHTML = ""; // clear old jobs
       jobs.forEach(job => {
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
         jobDiv.innerHTML = `
-          <strong>${job.title}</strong>
-          ${job.company} – ${job.location}
+          <h3>${job.title}</h3>
+          <p>${job.company} – ${job.location}</p>
         `;
         jobList.appendChild(jobDiv);
       });
-    })
-    .catch(err => {
-      status.textContent = "Error loading jobs.";
-      console.error("Error fetching jobs:", err);
     });
+  }
 });
+
 
 
 
