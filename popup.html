@@ -19,13 +19,22 @@
         border-bottom: 1px solid #ddd;
         padding: 5px 0;
       }
+      .job:nth-child(odd) {
+        background: #f9f9f9;
+      }
+      .job strong {
+        display: block;
+        margin-bottom: 2px;
+      }
     </style>
   </head>
   <body>
+    <div id="status">Loading jobs...</div>
     <div id="job-list"></div>
     <script src="popup.js"></script>
   </body>
 </html>
+
 
 
 
