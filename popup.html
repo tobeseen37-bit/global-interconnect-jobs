@@ -5,12 +5,12 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      width: 300px;
+      width: 320px;
       margin: 0;
       padding: 10px;
     }
     #job-list {
-      max-height: 400px;
+      max-height: 180px;
       overflow-y: auto;
       margin-top: 10px;
     }
@@ -30,6 +30,11 @@
       background-color: #aaa;
       cursor: not-allowed;
     }
+    h3 {
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -40,16 +45,16 @@
     <button id="viewJobsBtn">Get Started</button>
   </div>
 
-  <!-- ✅ Job list screen (hidden at first) -->
-  <div id="job-list-screen" style="display:none;">
-    <h2>Job Listings</h2>
+  <!-- ✅ Job list screen -->
+  <div id
+="job-list-screen" style="display:none;">
+    <h2>Available Jobs</h2>
     <div id="job-list"></div>
+    <button id="refreshBtn">Refresh Jobs</button>
   </div>
-
-  <script src="popup.js"></script>
 </body>
 </html>
-<!-- --- IGNORE --- -->
+
 
 
 
