@@ -1,14 +1,39 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Global Inter-Connect Jobs</title>
-    <link rel="stylesheet" href="popup.css">
-  </head>
-  <body>
-    <h1>🌍 Global Inter-Connect</h1>
-    <p>Welcome! This is where your job feed will appear.</p>
-    <button id="testBtn">Click Me</button>
-    <script src="popup.js"></script>
-  </body>
+<head>
+  <title>Job Feed</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      width: 300px;
+      background: #f4f4f4;
+    }
+    h1 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .job {
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .job-title {
+      font-weight: bold;
+    }
+    .company {
+      font-size: 12px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <h1>Today’s Job Feed</h1>
+  <div id="job-list"></div>
+  <script src="popup.js"></script>
+</body>
 </html>
+
 
