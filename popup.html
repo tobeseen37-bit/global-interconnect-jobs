@@ -6,29 +6,25 @@
     body {
       font-family: Arial, sans-serif;
       width: 300px;
+      margin: 0;
       padding: 10px;
     }
     #job-list {
-      max-height: 300px;
+      max-height: 400px;
       overflow-y: auto;
-      border-top: 1px solid #ddd;
       margin-top: 10px;
-      padding-top: 10px;
     }
     .job {
-      border-bottom: 1px solid #ccc;
-      padding: 8px 0;
-    }
-    .job:last-child {
-      border-bottom: none;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
     }
     button {
       background-color: #007bff;
       color: white;
       border: none;
       padding: 8px 12px;
+      border-radius: 4px;
       cursor: pointer;
-      border-radius: 5px;
     }
     button:disabled {
       background-color: #aaa;
@@ -37,22 +33,23 @@
   </style>
 </head>
 <body>
-  <!-- Welcome screen -->
-  <div id="welcome">
-    <h2>🌍 Welcome to Global Inter-Connect Jobs</h2>
-    <p>Find opportunities abroad or remote jobs that let you travel the world.</p>
+  <!-- ✅ Welcome screen -->
+  <div id="welcome-screen">
+    <h2>Welcome to Global Inter-Connect Jobs</h2>
+    <p>Find remote and international jobs abroad with one click.</p>
     <button id="viewJobsBtn">Get Started</button>
   </div>
 
-  <!-- Job list section (hidden at first) -->
-  <div id="job-section" style="display:none;">
-    <h2>Latest Jobs</h2>
+  <!-- ✅ Job list screen (hidden at first) -->
+  <div id="job-list-screen" style="display:none;">
+    <h2>Job Listings</h2>
     <div id="job-list"></div>
   </div>
 
   <script src="popup.js"></script>
 </body>
 </html>
+<!-- --- IGNORE --- -->
 
 
 
