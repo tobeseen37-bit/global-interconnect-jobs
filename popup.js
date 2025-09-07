@@ -1,78 +1,79 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const welcomeScreen = document.getElementById("welcome-screen");
+  const jobListScreen = document.getElementById("job-list-screen");
   const viewJobsBtn = document.getElementById("viewJobsBtn");
-  const welcomeSection = document.getElementById("welcome");
-  const jobSection = document.getElementById("job-section");
   const jobList = document.getElementById("job-list");
 
-  console.log("Button found?", viewJobsBtn); // Debugging check
+  // Your Adzuna credentials
+  const appId = "b39ca9ec"; 
+  const appKey = "d8f3335fc89f05e7a577c1cc468eebf1";
 
-  if (viewJobsBtn) {
-    viewJobsBtn.addEventListener("click", async () => {
-      // Show jobs section, hide welcome
-      welcomeSection.style.display = "none";
-      jobSection.style.display = "block";
-
-      // Load jobs from both APIs
-      jobList.innerHTML = "<p>Loading jobs...</p>";
-
-      try {
-        const [remoteJobs, localJobs] = await Promise.all([
-          fetchRemotiveJobs(),
-          fetchAdzunaJobs()
-        ]);
-
-        jobList.innerHTML = ""; // clear "loading"
-
-        [...remoteJobs, ...localJobs].forEach(job => {
-          const jobDiv = document.createElement("div");
-          jobDiv.className = "job";
-          jobDiv.innerHTML = `
-            <strong>${job.title}</strong><br>
-            ${job.company} – ${job.location}<br>
-            <a href="${job.url}" target="_blank">View Job</a>
-          `;
-          jobList.appendChild(jobDiv);
-        });
-
-      } catch (error) {
-        jobList.innerHTML = `<p style="color:red;">Error loading jobs: ${error.message}</p>`;
-      }
-    });
-  } else {
-    console.error("⚠️ viewJobsBtn not found in DOM!");
+  // ✅ Fetch jobs from Remotive API
+  async function fetchRemotiveJobs() {
+    try {
+      const response = await fetch("https://remotive.com/api/remote-jobs?limit=5");
+      if (!response.ok) throw new Error("Remotive API error: " + response.statusText);
+      const data = await response.json();
+      return data.jobs.map(job => ({
+        title: job.title,
+        company: job.company_name,
+        location: job.candidate_required_location,
+        url: job.url,
+        source: "Remotive"
+      }));
+    } catch (err) {
+      console.error("Error fetching Remotive jobs:", err);
+      return [];
+    }
   }
-});
 
-// --- Fetch Remote Jobs (Remotive API) ---
-async function fetchRemotiveJobs() {
-  const url = "https://remotive.com/api/remote-jobs?limit=5";
-  const response = await fetch(url);
-  const data = await response.json();
-  return data.jobs.map(job => ({
-    title: job.title,
-    company: job.company_name,
-    location: job.candidate_required_location,
-    url: job.url
-  }));
-}
+  // ✅ Fetch jobs from Adzuna API
+  async function fetchAdzunaJobs() {
+    try {
+      const response = await fetch(
+        `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=5&what=developer`
+      );
+      if (!response.ok) throw new Error("Adzuna API error: " + response.statusText);
+      const data = await response.json();
 
-// --- Fetch Local Jobs (Adzuna API) ---
-async function fetchAdzunaJobs() {
-  const appId = "your-app-id"; // Replace with your actual App ID
-  const appKey = "d8f3335fc89f05e7a577c1cc468eebf1"; // ✅ your key
-  const url = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=5&what=developer`;
+      if (!data.results) {
+        console.error("Unexpected Adzuna response:", data);
+        return [];
+      }
 
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Failed to fetch Adzuna jobs");
+      return data.results.map(job => ({
+        title: job.title,
+        company: job.company.display_name,
+        location: job.location.display_name,
+        url: job.redirect_url,
+        source: "Adzuna"
+      }));
+    } catch (err) {
+      console.error("Error fetching Adzuna jobs:", err);
+      return [];
+    }
+  }
 
-  const data = await response.json();
-  return data.results.map(job => ({
-    title: job.title,
-    company: job.company.display_name,
-    location: job.location.display_name,
-    url: job.redirect_url
-  }));
-}
+  // ✅ Render jobs in the popup
+  function renderJobs(jobs) {
+    jobList.innerHTML = "";
+    if (jobs.length === 0) {
+      jobList.innerHTML = "<p>No jobs found. Try again later.</p>";
+      return;
+    }
+
+    jobs.forEach(job => {
+      const jobDiv = document.createElement("div");
+      jobDiv.className = "job";
+      jobDiv.innerHTML = `
+        <strong>${job.title}</strong><br>
+        ${job.company} – ${job.location}<br>
+        <a href="${job.url}" target="_blank">View Job</a><br>
+        <small>Source: $
+{job.source}</small>
+      `;
+      jobList.appendChild(jobDiv);
+    });
 
 
 
@@ -85,4 +86,20 @@ async function fetchAdzunaJobs() {
 
 
       
+  }
+
+  // Show job list when button is clicked
+  viewJobsBtn.addEventListener("click", async () => {
+    welcomeScreen.style.display = "none";
+    jobListScreen.style.display = "block";
+
+    // Fetch jobs from both APIs
+    const [remotiveJobs, adzunaJobs] = await Promise.all([
+      fetchRemotiveJobs(),
+      fetchAdzunaJobs()
+    ]);
+    const allJobs = [...remotiveJobs, ...adzunaJobs];
+    renderJobs(allJobs);
+  });
+});
       
