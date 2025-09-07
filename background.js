@@ -5,13 +5,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkUpdates") {
     // Simulate checking for updates
     setTimeout(() => {
-      sendResponse({ updatesAvailable: true });
+      sendResponse({ message: "Updates are available." });
     }, 1000);
-    } else if (request.action === "installUpdates") {
-      // Simulate installing updates
-      setTimeout(() => {
-        sendResponse({ updatesInstalled: true });
-      }, 1000);
     }
     // Required to indicate you wish to send a response asynchronously
     return true;
