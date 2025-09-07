@@ -2,72 +2,104 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Global Inter-Connect Jobs</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       width: 350px;
-      margin: 0;
-      padding: 0;
+      padding: 10px;
     }
     #welcome-screen, #job-board {
-      padding: 15px;
+      text-align: center;
     }
-    #job-board {
-      display: none;
+    button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #job-list {
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+      margin-top: 10px;
     }
     .job {
-      border: 1px solid #ccc;
-      padding: 8px;
-      margin: 6px 0;
-      border-radius: 6px;
+      border-bottom: 1px solid #ddd;
+      padding: 8px 0;
     }
     .job a {
       display: inline-block;
-      margin-top: 5px;
-      color: blue;
+      margin-top: 4px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .job a:hover {
       text-decoration: underline;
     }
-    .job-list {
-      max-height: 200px;
-      overflow-y: auto;
-      margin-bottom: 15px;
+    #search-bar {
+      margin: 10px 0;
+    }
+    #job-search {
+      width: 90%;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    select {
+      margin: 8px 0;
+      padding: 5px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <!-- Welcome Screen -->
+  <!-- Welcome screen -->
   <div id="welcome-screen">
-    <h2>Welcome!</h2>
-    <p>Find jobs tailored for remote or local opportunities.</p>
+    <h2>🌍 Welcome to Global Inter-Connect Jobs</h2>
+    <p>Find remote and local opportunities worldwide.</p>
     <button id="viewJobsBtn">Get Started</button>
   </div>
 
-  <!-- Job Board -->
-  <div id="job-board">
-    <h3>Job Board</h3>
+  <!-- Job board -->
+  <div id="job-board" style="display:none;">
+    <h2>Job Listings</h2>
 
-    <!-- Filter Dropdown -->
-    <label for="jobTypeFilter">Filter jobs:</label>
-    <select id="jobTypeFilter">
-      <option value="all">All</option>
-      <option value="remote">Remote</option>
-      <option value="local">Local</option>
+    <!-- Country selector -->
+    <label for="country-select">Choose Country:</label>
+    <select id="country-select">
+      <option value="us" selected>United States</option>
+      <option value="gb">United Kingdom</option>
+      <option value="ca">Canada</option>
+      <option value="au">Australia</option>
+      <option value="de">Germany</option>
+      <option value="fr">France</option>
+      <option value="es">Spain</option>
+      <option value="it">Italy</option>
+      <option value="nl">Netherlands</option>
     </select>
 
-    <!-- Remote Jobs -->
-    <h4>🌍 Remote Jobs</h4>
-    <div id="remote-jobs" class="job-list"></div>
+    <!-- Job search bar -->
+    <div id="search-bar">
+      <input type="text" id="job-search" placeholder="Search for jobs...">
+    </div>
 
-    <!-- Local Jobs -->
-    <h4>📍 Local Jobs</h4>
-    <div id="local-jobs" class="job-list"></div>
-  </div>
+    <!-- Remote jobs -->
+    <h3>🌍 Remote Jobs</h3>
+    <div id="remote-jobs"></div>
 
-  <!-- Script at bottom ensures DOM loads first -->
-  <script src="popup.js"></script>
-</body>
-</html>
+    <!-- Local jobs -->
+    <h3>📍 Local Jobs</h3>
+    <div id="local-jobs
+"></div>
 
 
 
