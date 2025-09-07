@@ -11,23 +11,32 @@
     .job { padding: 10px; border-bottom: 1px solid #ddd; }
     .job h4 { margin: 0; font-size: 14px; }
     .job p { margin: 2px 0; font-size: 12px; }
+    #job-section { display: none; } /* hidden until user clicks start */
   </style>
 </head>
 <body>
   <h2>🌍 Global Inter-Connect Jobs</h2>
-  <p>Choose your path: Remote now or Local abroad.</p>
-  
-  <div class="tabs">
-    <button id="remoteTab" class="active">Remote Jobs</button>
-    <button id="localTab">Local Jobs</button>
+
+  <!-- Welcome Section -->
+  <div id="welcome-section">
+    <p>Welcome! Ready to find opportunities abroad or remote?</p>
+    <button id="startBtn">Get Started</button>
   </div>
 
-  <div id="status">Loading...</div>
-  <div id="job-list"></div>
+  <!-- Job Section (hidden by default) -->
+  <div id="job-section">
+    <div class="tabs">
+      <button id="remoteTab" class="active">Remote Jobs</button>
+      <button id="localTab">Local Jobs</button>
+    </div>
+    <div id="status">Please choose a tab.</div>
+    <div id="job-list"></div>
+  </div>
 
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 

@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const welcomeSection = document.getElementById("welcome-section");
+  const jobSection = document.getElementById("job-section");
+  const startBtn = document.getElementById("startBtn");
+
   const status = document.getElementById("status");
   const jobList = document.getElementById("job-list");
   const remoteTab = document.getElementById("remoteTab");
@@ -11,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to render jobs
   function renderJobs(jobs) {
     jobList.innerHTML = "";
-    if (jobs.length === 0) {
+    if (!jobs || jobs.length === 0) {
       status.textContent = "No jobs found.";
       return;
     }
@@ -53,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch(
         `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10`
       );
+      if (!res.ok) throw new Error(`HTTP error! ${res.status}`);
       const data = await res.json();
       const jobs = data.results.map(j => ({
         title: j.title,
@@ -62,12 +67,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }));
       renderJobs(jobs);
     } catch (err) {
+      console.error("Adzuna error:", err);
       status.textContent = "Error fetching local jobs.";
     }
   }
 
-  // Default: load remote jobs
-  fetchRemoteJobs();
+  // Start button → show tabs + jobs
+  startBtn.addEventListener("click", () => {
+    welcomeSection.style.display = "none";
+    jobSection.style.display = "block";
+    fetchRemoteJobs(); // default load
+  });
 
   // Tab switching
   remoteTab.addEventListener("click", () => {
@@ -82,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchLocalJobs();
   });
 });
+
 
 
 
