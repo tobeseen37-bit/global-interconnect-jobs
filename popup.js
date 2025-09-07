@@ -1,40 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Handle test button click
-  const testBtn = document.getElementById("testBtn");
-  if (testBtn) {
-    testBtn.addEventListener("click", () => {
-      alert("Extension test successful! 🚀");
-    });
-  }
+  const jobFeed = document.getElementById("job-feed");
 
-  // Update status and check for updates
-  const status = document.getElementById("status");
-  if (status) {
-    status.textContent = "Checking for updates...";
-    chrome.runtime.sendMessage({ action: "checkUpdates" }, (response) => {
-      status.textContent = response.message;
-    });
-  }
-
-  // Render job listings
   const jobs = [
-    { title: "Frontend Developer", company: "TechCorp", location: "Remote" },
-    { title: "Data Entry Specialist", company: "BizAssist", location: "New York" },
-    { title: "Customer Support Agent", company: "HelpDesk Inc.", location: "Remote" },
-    { title: "Junior Web Designer", company: "Creative Studio", location: "Los Angeles" },
+    { title: "Frontend Developer", company: "TechCorp", link: "#" },
+    { title: "Remote UX Designer", company: "Designify", link: "#" },
+    { title: "Data Analyst", company: "Insight LLC", link: "#" },
+    { title: "AI Engineer", company: "FutureAI", link: "#" },
+    { title: "Customer Success Rep", company: "HelpHub", link: "#" },
+    { title: "Backend Developer", company: "CodeWorks", link: "#" },
+    { title: "Marketing Specialist", company: "AdStream", link: "#" },
+    { title: "Project Manager", company: "BuildIt Inc.", link: "#" }
   ];
 
-  const jobList = document.getElementById("job-list");
-  if (jobList) {
-    jobs.forEach(job => {
-      const jobDiv = document.createElement("div");
-      jobDiv.className = "job";
-      jobDiv.innerHTML = `
-        <div class="job-title">${job.title}</div>
-        <div class="company">${job.company} – ${job.location}</div>
-      `;
-              jobList.appendChild(jobDiv);
-          });
-        }
-      });
+  jobs.forEach(job => {
+    const div = document.createElement("div");
+    div.classList.add("job-item");
+    div.innerHTML = `
+      <div class="job-title">${job.title}</div>
+      <div class="job-company">${job.company}</div>
+      <a class="job-link" href="${job.link}" target="_blank">View Job</a>
+
+    `;
+    jobFeed.appendChild(div);
+  });
+});
+
+      
       
