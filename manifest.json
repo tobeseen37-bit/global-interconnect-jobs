@@ -10,7 +10,9 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting",
+    "scripting"
+  ],
+  "host_permissions": [
     "https://remotive.com/*"
   ],
   "background": {
@@ -23,4 +25,5 @@
     }
   ]
 }
+
 
