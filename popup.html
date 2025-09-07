@@ -1,28 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Global Inter-Connect Jobs</title>
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { font-family: Arial, sans-serif; width: 320px; margin: 0; padding: 10px; }
+    .tabs { display: flex; justify-content: space-around; margin-bottom: 10px; }
+    button { flex: 1; padding: 8px; cursor: pointer; border: none; background: #f1f1f1; }
+    button.active { background: #007bff; color: white; }
+    #job-list { max-height: 400px; overflow-y: auto; }
+    .job { padding: 10px; border-bottom: 1px solid #ddd; }
+    .job h4 { margin: 0; font-size: 14px; }
+    .job p { margin: 2px 0; font-size: 12px; }
+  </style>
 </head>
 <body>
-  <!-- Welcome screen -->
-  <div id="welcome-screen">
-    <h1>🌍 Welcome to Global Inter-Connect Jobs</h1>
-    <p>Connecting the global workforce.</p>
-    <button id="startBtn">View Jobs</button>
+  <h2>🌍 Global Inter-Connect Jobs</h2>
+  <p>Choose your path: Remote now or Local abroad.</p>
+  
+  <div class="tabs">
+    <button id="remoteTab" class="active">Remote Jobs</button>
+    <button id="localTab">Local Jobs</button>
   </div>
 
-  <!-- Jobs screen -->
-  <div id="jobs-screen" style="display:none;">
-    <h2>Latest Jobs</h2>
-    <div id="job-list"></div>
-  </div>
+  <div id="status">Loading...</div>
+  <div id="job-list"></div>
 
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
