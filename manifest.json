@@ -10,7 +10,8 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "https://remotive.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -22,3 +23,4 @@
     }
   ]
 }
+
