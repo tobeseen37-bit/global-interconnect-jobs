@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="job-title">${job.title}</div>
         <div class="company">${job.company} – ${job.location}</div>
       `;
-            jobList.appendChild(jobDiv);
+              jobList.appendChild(jobDiv);
           });
         }
       });
