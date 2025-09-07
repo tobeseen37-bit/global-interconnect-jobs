@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function fetchJobs() {
     try {
-      // ✅ Fetch remote jobs (Remotive API)
+      // 🌍 Remote Jobs (Remotive)
       const remotiveRes = await fetch("https://remotive.com/api/remote-jobs");
       const remotiveData = await remotiveRes.json();
 
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
         remoteJobsDiv.appendChild(jobDiv);
       });
 
-      // ✅ Fetch local jobs (Adzuna API)
+      // 📍 Local Jobs (Adzuna)
       const adzunaAppId = "b39ca9ec";
       const adzunaAppKey = "d8f3335fc89f05e7a577c1cc468eebf1";
       const adzunaUrl = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${adzunaAppId}&app_key=${adzunaAppKey}&results_per_page=5`;
@@ -43,13 +43,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ✅ Attach event only if button exists
   if (viewJobsBtn) {
     viewJobsBtn.addEventListener("click", async () => {
       welcomeScreen.style.display = "none";
       jobListScreen.style.display = "block";
       await fetchJobs();
     });
+  } else {
+    console.error("⚠️ viewJobsBtn not found in DOM");
   }
 });
+
 
       

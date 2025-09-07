@@ -9,13 +9,13 @@
       margin: 0;
       padding: 10px;
     }
-    #job-list {
-      max-height: 180px;
+    #remote-jobs, #local-jobs {
+      max-height: 120px;
       overflow-y: auto;
-      margin-top: 10px;
+      margin-bottom: 10px;
     }
     .job {
-      padding: 8px;
+      padding: 6px;
       border-bottom: 1px solid #ddd;
     }
     button {
@@ -25,10 +25,7 @@
       padding: 8px 12px;
       border-radius: 4px;
       cursor: pointer;
-    }
-    button:disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
+      width: 100%;
     }
     h3 {
       margin-top: 15px;
@@ -38,22 +35,29 @@
   </style>
 </head>
 <body>
-  <!-- ✅ Welcome screen -->
+  <!-- Welcome screen -->
   <div id="welcome-screen">
     <h2>Welcome to Global Inter-Connect Jobs</h2>
     <p>Find remote and international jobs abroad with one click.</p>
     <button id="viewJobsBtn">Get Started</button>
   </div>
 
-  <!-- ✅ Job list screen -->
-  <div id
-="job-list-screen" style="display:none;">
-    <h2>Available Jobs</h2>
-    <div id="job-list"></div>
-    <button id="refreshBtn">Refresh Jobs</button>
+  <!-- Job listings screen -->
+  <div id="job-list-screen" style="display:none;">
+    <h2>Job Listings</h2>
+
+    <h3>🌍 Remote Jobs</h3>
+    <div id="remote-jobs"></div>
+
+    <h3>📍 Local Jobs</h3>
+    <div id="local-jobs"></div>
   </div>
+
+  <!-- script at bottom so DOM is ready -->
+  <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
