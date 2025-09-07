@@ -1,68 +1,107 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const welcomeScreen = document.getElementById("welcome-screen");
-  const jobListScreen = document.getElementById("job-list-screen");
-  const viewJobsBtn = document.getElementById("viewJobsBtn");
-  const remoteJobsDiv = document.getElementById("remote-jobs");
-  const localJobsDiv = document.getElementById("local-jobs");
+const REMOTIVE_API = "https://remotive.com/api/remote-jobs";
+const ADZUNA_API_BASE = "https://api.adzuna.com/v1/api/jobs";
+const ADZUNA_APP_ID = "b39ca9ec";  // Your App ID
+const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";  // Your App Key
 
-  async function fetchJobs() {
-    try {
-      // 🌍 Remote Jobs (Remotive)
-      const remotiveRes = await fetch("https://remotive.com/api/remote-jobs");
-      const remotiveData = await remotiveRes.json();
+const getStartedBtn = document.getElementById("getStartedBtn");
+const welcomeScreen = document.getElementById("welcome-screen");
+const jobScreen = document.getElementById("job-screen");
+const searchInput = document.getElementById("search-input");
+const searchBtn = document.getElementById("search-btn");
+const remoteJobsContainer = document.getElementById("remote-jobs");
+const localJobsContainer = document.getElementById("local-jobs");
 
-      remoteJobsDiv.innerHTML = "";
-      remotiveData.jobs.slice(0, 5).forEach(job => {
-        const jobDiv = document.createElement("div");
-        jobDiv.className = "job";
-        jobDiv.innerHTML = `
-          <strong><a href="${job.url}" target="_blank" rel="noopener noreferrer">
-            ${job.title}
-          </a></strong><br>
-          ${job.company_name} – ${job.candidate_required_location}
-        `;
-        remoteJobsDiv.appendChild(jobDiv);
-      });
-
-      // 📍 Local Jobs (Adzuna)
-      const adzunaAppId = "b39ca9ec";
-      const adzunaAppKey = "d8f3335fc89f05e7a577c1cc468eebf1";
-      const adzunaUrl = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${adzunaAppId}&app_key=${adzunaAppKey}&results_per_page=5`;
-
-      const adzunaRes = await fetch(adzunaUrl);
-      if (!adzunaRes.ok) throw new Error("Failed to fetch Adzuna jobs");
-      const adzunaData = await adzunaRes.json();
-
-      localJobsDiv.innerHTML = "";
-      adzunaData.results.forEach(job => {
-        const jobDiv = document.createElement("div");
-        jobDiv.className = "job";
-        jobDiv.innerHTML = `
-          <strong><a href="${job.redirect_url}" target="_blank" rel="noopener noreferrer">
-            ${job.title}
-          </a></strong><br>
-          ${job.company.display_name} – ${job.location.display_name}
-        `;
-        localJobsDiv.appendChild(jobDiv);
-      });
-
-    } catch (err) {
-      console.error("Error loading jobs:", err);
-      remoteJobsDiv.innerHTML = `<p style="color:red;">Error fetching remote jobs.</p>`;
-      localJobsDiv.innerHTML = `<p style="color:red;">Error fetching local jobs.</p>`;
-    }
+// Fetch remote jobs (Remotive)
+async function fetchRemoteJobs(query = "") {
+  try {
+    let url = REMOTIVE_API;
+    if (query) url += `?search=${encodeURIComponent(query)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.jobs.slice(0, 5).map(job => ({
+      title: job.title,
+      company: job.company_name,
+      location: job.candidate_required_location,
+      url: job.url
+    }));
+  } catch (err) {
+    console.error("Failed to fetch remote jobs:", err);
+    return [];
   }
+}
 
-  if (viewJobsBtn) {
-    viewJobsBtn.addEventListener("click", async () => {
-      welcomeScreen.style.display = "none";
-      jobListScreen.style.display = "block";
-      await fetchJobs();
-    });
-  } else {
-    console.error("⚠️ viewJobsBtn not found in DOM");
+// Fetch local jobs (Adzuna)
+async function fetchLocalJobs(query = "", country = "us") {
+  try {
+    let url = `${ADZUNA_API_BASE}/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}`;
+    if (query) url += `&what=${encodeURIComponent(query)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.results.slice(0, 5).map(job => ({
+      title: job.title,
+      company: job.company.display_name,
+      location: job.location.display_name,
+      url: job.redirect_url
+    }));
+  } catch (err) {
+    console.error("Failed to fetch local jobs:", err);
+    return [];
+  }
+}
+
+// Render jobs into UI
+function renderJobs(container, jobs) {
+  container.innerHTML = "";
+  if (!jobs.length) {
+    container.innerHTML = "<p>No jobs found.</p>";
+    return;
+  }
+  jobs.forEach(job => {
+    const card = document.createElement("div");
+    card.className = "job-card";
+    card.innerHTML = `
+      <h3>${job.title}</h3>
+      <p><strong>${job.company}</strong></p>
+      <p>${job.location}</p>
+      <a href="${job.url}" target="_blank" class="apply-link">Apply Now</a>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Load jobs (both APIs)
+async function loadJobs(query = "") {
+  remoteJobsContainer.innerHTML = "<p>Loading remote jobs...</p>";
+  localJobsContainer.innerHTML = "<p>Loading local jobs...</p>";
+
+  const [remoteJobs, localJobs] = await Promise.all([
+    fetchRemoteJobs(query),
+    fetchLocalJobs(query, "us") // you can change "us" to other countries
+  ]);
+
+  renderJobs(remoteJobsContainer, remoteJobs);
+  renderJobs(localJobsContainer, localJobs);
+}
+
+// Event listeners
+getStartedBtn.addEventListener("click", () => {
+  welcomeScreen.style.display = "none";
+  jobScreen.style.display = "block";
+  loadJobs();
+});
+
+searchBtn.addEventListener("click", () => {
+  const query = searchInput.value.trim();
+  loadJobs(query);
+});
+
+searchInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    const query = searchInput.value.trim();
+    loadJobs(query);
   }
 });
+
 
 
 

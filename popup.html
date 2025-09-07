@@ -1,36 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Global Inter-Connect Jobs</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      width: 320px;
       margin: 0;
-      padding: 10px;
+      padding: 0;
+      width: 350px;
+      background: #f9f9f9;
     }
-    #remote-jobs, #local-jobs {
-      max-height: 120px;
-      overflow-y: auto;
-      margin-bottom: 10px;
+    #welcome-screen, #job-screen {
+      padding: 15px;
     }
-    .job {
-      padding: 6px;
-      border-bottom: 1px solid #ddd;
+    h2 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      color: #333;
     }
-    button {
-      background-color: #007bff;
+    .btn {
+      background: #0077cc;
       color: white;
       border: none;
-      padding: 8px 12px;
-      border-radius: 4px;
+      padding: 10px 15px;
+      border-radius: 5px;
       cursor: pointer;
-      width: 100%;
+      font-size: 14px;
     }
-    h3 {
-      margin-top: 15px;
-      margin-bottom: 5px;
-      font-size: 16px;
+    .btn:hover {
+      background: #005fa3;
+    }
+    #search-bar {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    #search-input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px 0 0 5px;
+    }
+    #search-btn {
+      padding: 8px 12px;
+      border: none;
+      background: #0077cc;
+      color: white;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+    }
+    .job-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+    .job-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .job-card h3 {
+      font-size: 14px;
+      margin: 0 0 5px;
+      color: #0077cc;
+    }
+    .job-card p {
+      margin: 2px 0;
+      font-size: 12px;
+      color: #555;
+    }
+    .apply-link {
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 12px;
+      color: white;
+      background: #28a745;
+      padding: 5px 8px;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+    .apply-link:hover {
+      background: #1e7e34;
     }
   </style>
 </head>
@@ -38,25 +91,27 @@
   <!-- Welcome screen -->
   <div id="welcome-screen">
     <h2>Welcome to Global Inter-Connect Jobs</h2>
-    <p>Find remote and international jobs abroad with one click.</p>
-    <button id="viewJobsBtn">Get Started</button>
+    <p>Find remote or local jobs worldwide.</p>
+    <button id="getStartedBtn" class="btn">Get Started</button>
   </div>
 
-  <!-- Job listings screen -->
-  <div id="job-list-screen" style="display:none;">
-    <h2>Job Listings</h2>
+  <!-- Job screen -->
+  <div id="job-screen" style="display: none;">
+    <div id="search-bar">
+      <input type="text" id="search-input" placeholder="Search jobs (e.g., developer)">
+      <button id="search-btn">Search</button>
+    </div>
+    <h2>🌍 Remote Jobs</h2>
+    <div id="remote-jobs" class="job-list"></div>
 
-    <h3>🌍 Remote Jobs</h3>
-    <div id="remote-jobs"></div>
-
-    <h3>📍 Local Jobs</h3>
-    <div id="local-jobs"></div>
+    <h2>📍 Local Jobs</h2>
+    <div id="local-jobs" class="job-list"></div>
   </div>
 
-  <!-- script at bottom so DOM is ready -->
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
