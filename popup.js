@@ -15,7 +15,12 @@ document.addEventListener("DOMContentLoaded", () => {
       remotiveData.jobs.slice(0, 5).forEach(job => {
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
-        jobDiv.innerHTML = `<strong>${job.title}</strong><br>${job.company_name} – ${job.candidate_required_location}`;
+        jobDiv.innerHTML = `
+          <strong><a href="${job.url}" target="_blank" rel="noopener noreferrer">
+            ${job.title}
+          </a></strong><br>
+          ${job.company_name} – ${job.candidate_required_location}
+        `;
         remoteJobsDiv.appendChild(jobDiv);
       });
 
@@ -32,7 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
       adzunaData.results.forEach(job => {
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
-        jobDiv.innerHTML = `<strong>${job.title}</strong><br>${job.company.display_name} – ${job.location.display_name}`;
+        jobDiv.innerHTML = `
+          <strong><a href="${job.redirect_url}" target="_blank" rel="noopener noreferrer">
+            ${job.title}
+          </a></strong><br>
+          ${job.company.display_name} – ${job.location.display_name}
+        `;
         localJobsDiv.appendChild(jobDiv);
       });
 
@@ -43,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ✅ Attach event only if button exists
   if (viewJobsBtn) {
     viewJobsBtn.addEventListener("click", async () => {
       welcomeScreen.style.display = "none";
@@ -54,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("⚠️ viewJobsBtn not found in DOM");
   }
 });
+
 
 
       
