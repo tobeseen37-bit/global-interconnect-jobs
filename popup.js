@@ -1,27 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const jobFeed = document.getElementById("job-feed");
-
   const jobs = [
-    { title: "Frontend Developer", company: "TechCorp", link: "#" },
-    { title: "Remote UX Designer", company: "Designify", link: "#" },
-    { title: "Data Analyst", company: "Insight LLC", link: "#" },
-    { title: "AI Engineer", company: "FutureAI", link: "#" },
-    { title: "Customer Success Rep", company: "HelpHub", link: "#" },
-    { title: "Backend Developer", company: "CodeWorks", link: "#" },
-    { title: "Marketing Specialist", company: "AdStream", link: "#" },
-    { title: "Project Manager", company: "BuildIt Inc.", link: "#" }
+    { title: "Frontend Developer", company: "TechCorp", location: "Remote" },
+    { title: "Data Entry Specialist", company: "BizAssist", location: "New York" },
+    { title: "Customer Support Agent", company: "HelpDesk Inc.", location: "Remote" },
+    { title: "Junior Web Designer", company: "Creative Studio", location: "Los Angeles" },
   ];
 
-  jobs.forEach(job => {
-    const div = document.createElement("div");
-    div.classList.add("job-item");
-    div.innerHTML = `
-      <div class="job-title">${job.title}</div>
-      <div class="job-company">${job.company}</div>
-      <a class="job-link" href="${job.link}" target="_blank">View Job</a>
+  const jobList = document.getElementById("job-list");
+  if (!jobList) return; // Prevent error if element is missing
 
+  jobs.forEach(job => {
+    const jobDiv = document.createElement("div");
+    jobDiv.className = "job";
+    jobDiv.innerHTML = `
+      <strong>${job.title}</strong><br>
+      ${job.company} – ${job.location}
     `;
-    jobFeed.appendChild(div);
+    jobList.appendChild(jobDiv);
   });
 });
 
