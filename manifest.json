@@ -1,11 +1,20 @@
-
 {
   "manifest_version": 3,
-  "name": "Global Connect",
+  "name": "Global Inter-Connect Jobs",
+  "description": "Connecting the global workforce through one extension.",
   "version": "1.0",
-  "description": "Connecting the global workforce.",
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icon.png"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
   }
 }
+
+
