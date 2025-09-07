@@ -3,39 +3,57 @@
 <head>
   <title>Global Inter-Connect Jobs</title>
   <style>
-    body { font-family: Arial, sans-serif; width: 320px; margin: 0; padding: 10px; }
-    .tabs { display: flex; justify-content: space-around; margin-bottom: 10px; }
-    button { flex: 1; padding: 8px; cursor: pointer; border: none; background: #f1f1f1; }
-    button.active { background: #007bff; color: white; }
-    #job-list { max-height: 400px; overflow-y: auto; }
-    .job { padding: 10px; border-bottom: 1px solid #ddd; }
-    .job h4 { margin: 0; font-size: 14px; }
-    .job p { margin: 2px 0; font-size: 12px; }
-    #job-section { display: none; } /* hidden until user clicks start */
+    body {
+      font-family: Arial, sans-serif;
+      width: 300px;
+      padding: 10px;
+    }
+    #job-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border-top: 1px solid #ddd;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+    .job {
+      border-bottom: 1px solid #ccc;
+      padding: 8px 0;
+    }
+    .job:last-child {
+      border-bottom: none;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
-  <h2>🌍 Global Inter-Connect Jobs</h2>
-
-  <!-- Welcome Section -->
-  <div id="welcome-section">
-    <p>Welcome! Ready to find opportunities abroad or remote?</p>
-    <button id="startBtn">Get Started</button>
+  <!-- Welcome screen -->
+  <div id="welcome">
+    <h2>🌍 Welcome to Global Inter-Connect Jobs</h2>
+    <p>Find opportunities abroad or remote jobs that let you travel the world.</p>
+    <button id="viewJobsBtn">Get Started</button>
   </div>
 
-  <!-- Job Section (hidden by default) -->
-  <div id="job-section">
-    <div class="tabs">
-      <button id="remoteTab" class="active">Remote Jobs</button>
-      <button id="localTab">Local Jobs</button>
-    </div>
-    <div id="status">Please choose a tab.</div>
+  <!-- Job list section (hidden at first) -->
+  <div id="job-section" style="display:none;">
+    <h2>Latest Jobs</h2>
     <div id="job-list"></div>
   </div>
 
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 

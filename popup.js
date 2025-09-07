@@ -4,68 +4,77 @@ document.addEventListener("DOMContentLoaded", () => {
   const jobSection = document.getElementById("job-section");
   const jobList = document.getElementById("job-list");
 
+  console.log("Button found?", viewJobsBtn); // Debugging check
+
   if (viewJobsBtn) {
     viewJobsBtn.addEventListener("click", async () => {
-      // Hide welcome, show jobs
+      // Show jobs section, hide welcome
       welcomeSection.style.display = "none";
       jobSection.style.display = "block";
 
-      // Fetch jobs
+      // Load jobs from both APIs
       jobList.innerHTML = "<p>Loading jobs...</p>";
-      await fetchJobs();
-    });
-  }
 
-  async function fetchJobs() {
-    jobList.innerHTML = ""; // Clear old jobs
+      try {
+        const [remoteJobs, localJobs] = await Promise.all([
+          fetchRemotiveJobs(),
+          fetchAdzunaJobs()
+        ]);
 
-    try {
-      // 1. Get remote jobs from Remotive
-      const remotiveResponse = await fetch("https://remotive.com/api/remote-jobs");
-      const remotiveData = await remotiveResponse.json();
-      const remotiveJobs = remotiveData.jobs.slice(0, 5);
+        jobList.innerHTML = ""; // clear "loading"
 
-      remotiveJobs.forEach(job => {
-        const jobDiv = document.createElement("div");
-        jobDiv.className = "job";
-        jobDiv.innerHTML = `
-          <h3>${job.title}</h3>
-          <p>${job.company_name} – ${job.candidate_required_location}</p>
-          <a href="${job.url}" target="_blank">View Job</a>
-        `;
-        jobList.appendChild(jobDiv);
-      });
-
-      // 2. Get global jobs from Adzuna
-      const adzunaAppId = "YOUR_APP_ID"; // replace with your Adzuna App ID
-      const adzunaAppKey = "d8f3335fc89f05e7a577c1cc468eebf1"; // your key
-      const country = "us"; // you can change dynamically later
-
-      const adzunaUrl = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${adzunaAppId}&app_key=${adzunaAppKey}`;
-
-      const adzunaResponse = await fetch(adzunaUrl);
-      const adzunaData = await adzunaResponse.json();
-
-      if (adzunaData.results) {
-        adzunaData.results.slice(0, 5).forEach(job => {
+        [...remoteJobs, ...localJobs].forEach(job => {
           const jobDiv = document.createElement("div");
           jobDiv.className = "job";
           jobDiv.innerHTML = `
-            <h3>${job.title}</h3>
-            <p>${job.company.display_name} – ${job.location.display_name}</p>
-            <a href="${job.redirect_url}" target="_blank">View Job</a>
+            <strong>${job.title}</strong><br>
+            ${job.company} – ${job.location}<br>
+            <a href="${job.url}" target="_blank">View Job</a>
           `;
           jobList.appendChild(jobDiv);
         });
-      } else {
-        jobList.innerHTML += "<p>⚠️ Could not load Adzuna jobs.</p>";
+
+      } catch (error) {
+        jobList.innerHTML = `<p style="color:red;">Error loading jobs: ${error.message}</p>`;
       }
-    } catch (error) {
-      console.error("Error fetching jobs:", error);
-      jobList.innerHTML = "<p>⚠️ Failed to fetch jobs. Try again later.</p>";
-    }
+    });
+  } else {
+    console.error("⚠️ viewJobsBtn not found in DOM!");
   }
 });
+
+// --- Fetch Remote Jobs (Remotive API) ---
+async function fetchRemotiveJobs() {
+  const url = "https://remotive.com/api/remote-jobs?limit=5";
+  const response = await fetch(url);
+  const data = await response.json();
+  return data.jobs.map(job => ({
+    title: job.title,
+    company: job.company_name,
+    location: job.candidate_required_location,
+    url: job.url
+  }));
+}
+
+// --- Fetch Local Jobs (Adzuna API) ---
+async function fetchAdzunaJobs() {
+  const appId = "your-app-id"; // Replace with your actual App ID
+  const appKey = "d8f3335fc89f05e7a577c1cc468eebf1"; // ✅ your key
+  const url = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=5&what=developer`;
+
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch Adzuna jobs");
+
+  const data = await response.json();
+  return data.results.map(job => ({
+    title: job.title,
+    company: job.company.display_name,
+    location: job.location.display_name,
+    url: job.redirect_url
+  }));
+}
+
+
 
 
 
