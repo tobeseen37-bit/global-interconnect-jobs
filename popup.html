@@ -27,7 +27,7 @@
       cursor: not-allowed;
     }
     #job-list {
-      max-height: 200px;
+      max-height: 300px;
       overflow-y: auto;
       text-align: left;
       margin-top: 10px;
@@ -94,17 +94,16 @@
       <input type="text" id="job-search" placeholder="Search for jobs">
     </div>
 
-    <!-- Job list -->
-    <div id="job-list">
-      <div id="remote-jobs"></div>
-      <div id="local-jobs"></div>
-    </div>
+    <!-- Remote jobs -->
+    <h3>🌍 Remote Jobs</h3>
+    <div id="remote-jobs"></div>
+
+    <!-- Local jobs -->
+    <h3>📍 Local Jobs</h3>
+    <div id="local-jobs"></div>
   </div>
 
-  <!-- JS scripts -->
   <script src="popup.js"></script>
-  <script>
-    console.log("popup.html loaded ✅");
-  </script>
 </body>
 </html>
+

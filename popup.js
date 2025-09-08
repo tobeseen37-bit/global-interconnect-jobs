@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("popup.js loaded ✅");
+  console.log("Popup loaded ✅");
 
   const viewJobsBtn = document.getElementById("viewJobsBtn");
   const welcomeScreen = document.getElementById("welcome-screen");
@@ -67,35 +67,27 @@ document.addEventListener("DOMContentLoaded", () => {
     viewJobsBtn.addEventListener("click", () => {
       console.log("Get Started button clicked 🎉");
 
-      // Make sure the elements exist before changing display
-      if (welcomeScreen && jobBoard) {
-        welcomeScreen.style.display = "none";
-        jobBoard.style.display = "block";
+      // Hide welcome, show job board
+      welcomeScreen.style.display = "none";
+      jobBoard.style.display = "block";
 
-        // Load jobs immediately
-        fetchRemoteJobs();
-        fetchLocalJobs(countrySelect ? countrySelect.value : "us");
-      }
+      // Load jobs immediately
+      fetchRemoteJobs();
+      fetchLocalJobs(countrySelect.value);
     });
-  } else {
-    console.error("⚠️ viewJobsBtn not found in DOM");
   }
 
   // --- COUNTRY DROPDOWN ---
-  if (countrySelect) {
-    countrySelect.addEventListener("change", () => {
-      fetchLocalJobs(countrySelect.value, jobSearchInput.value);
-    });
-  }
+  countrySelect.addEventListener("change", () => {
+    fetchLocalJobs(countrySelect.value, jobSearchInput.value);
+  });
 
   // --- SEARCH INPUT ---
-  if (jobSearchInput) {
-    jobSearchInput.addEventListener("input", () => {
-      const searchTerm = jobSearchInput.value;
-      fetchRemoteJobs(searchTerm);
-      fetchLocalJobs(countrySelect ? countrySelect.value : "us", searchTerm);
-    });
-  }
+  jobSearchInput.addEventListener("input", () => {
+    const searchTerm = jobSearchInput.value;
+    fetchRemoteJobs(searchTerm);
+    fetchLocalJobs(countrySelect.value, searchTerm);
+  });
 });
 // --- IGNORE ---
 
