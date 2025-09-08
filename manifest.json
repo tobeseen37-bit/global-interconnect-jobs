@@ -1,25 +1,19 @@
 {
-  "manifest_version": 3,
   "name": "Global Inter-Connect Jobs",
+  "description": "Find remote and local job opportunities worldwide.",
   "version": "1.0",
-  "description": "Connecting the global workforce through one extension. Find jobs abroad that accept international travelers.",
+  "manifest_version": 3,
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": "icon.png"
+    "default_popup": "popup.html"
   },
-  "permissions": [
-    "storage",
-    "activeTab",
-    "scripting"
+  "permissions": ["storage", "tabs"],
+  "host_permissions": [
+    "https://remotive.com/*",
+    "https://api.adzuna.com/*"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["jobs.json"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
+
 
