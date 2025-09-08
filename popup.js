@@ -16,13 +16,14 @@ const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
 // --- FETCH REMOTE JOBS ---
 async function fetchRemoteJobs(search = "") {
   try {
+    console.log("🌍 Fetching remote jobs for:", search);
     const response = await fetch(
       `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`
     );
     const data = await response.json();
 
     remoteJobsDiv.innerHTML = "";
-    if (data.jobs.length === 0) {
+    if (!data.jobs || data.jobs.length === 0) {
       remoteJobsDiv.innerHTML = "<p>No remote jobs found.</p>";
       return;
     }
@@ -46,6 +47,7 @@ async function fetchRemoteJobs(search = "") {
 // --- FETCH LOCAL JOBS ---
 async function fetchLocalJobs(country = "us", search = "") {
   try {
+    console.log("📍 Fetching local jobs in", country, "for:", search);
     const response = await fetch(
       `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`
     );
@@ -75,20 +77,17 @@ async function fetchLocalJobs(country = "us", search = "") {
 }
 
 // --- SEARCH FUNCTION ---
-let searchTimeout;
 function triggerSearch() {
   const searchTerm = jobSearchInput.value.trim();
-  console.log("🔍 Searching for:", searchTerm, "in", countrySelect.value);
+  console.log("🔍 TriggerSearch called | Term:", `"${searchTerm}"`, "| Country:", countrySelect.value);
 
   fetchRemoteJobs(searchTerm);
   fetchLocalJobs(countrySelect.value, searchTerm);
 }
 
 // --- EVENT LISTENERS ---
-// Get Started button
 viewJobsBtn.addEventListener("click", () => {
-  console.log("Get Started button clicked 🎉");
-
+  console.log("✅ Get Started button clicked");
   welcomeScreen.style.display = "none";
   jobBoard.style.display = "block";
 
@@ -96,30 +95,30 @@ viewJobsBtn.addEventListener("click", () => {
   fetchLocalJobs(countrySelect.value);
 });
 
-// Search input debounce
-jobSearchInput.addEventListener("input", () => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(triggerSearch, 500);
+// Country change
+countrySelect.addEventListener("change", () => {
+  console.log("🌎 Country changed:", countrySelect.value);
+  triggerSearch();
 });
 
 // Search button click
 searchBtn.addEventListener("click", (e) => {
   e.preventDefault();
+  console.log("🔘 Search button clicked");
   triggerSearch();
 });
 
-// Pressing Enter in search field
+// Enter key in search box
 jobSearchInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
+    console.log("⏎ Enter pressed in search box");
     triggerSearch();
   }
 });
-// Country selection change
-countrySelect.addEventListener("change", () => {
-  console.log("Country changed to:", countrySelect.value);
-  triggerSearch();
-}); 
+// --- INITIAL LOAD ---
+welcomeScreen.style.display = "block";
+jobBoard.style.display = "none";  
 
 
 
