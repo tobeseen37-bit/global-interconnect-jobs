@@ -1,124 +1,115 @@
-console.log("Popup loaded ✅");
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Popup loaded ✅");
 
-const viewJobsBtn = document.getElementById("viewJobsBtn");
-const welcomeScreen = document.getElementById("welcome-screen");
-const jobBoard = document.getElementById("job-board");
-const remoteJobsDiv = document.getElementById("remote-jobs");
-const localJobsDiv = document.getElementById("local-jobs");
-const countrySelect = document.getElementById("country-select");
-const jobSearchInput = document.getElementById("job-search");
-const searchBtn = document.getElementById("search-btn");
+  const viewJobsBtn = document.getElementById("viewJobsBtn");
+  const welcomeScreen = document.getElementById("welcomeScreen");
+  const jobScreen = document.getElementById("jobScreen");
+  const remoteJobsDiv = document.getElementById("remoteJobs");
+  const localJobsDiv = document.getElementById("localJobs");
+  const countrySelect = document.getElementById("countrySelect");
+  const jobTitleInput = document.getElementById("jobTitleInput");
+  const searchBtn = document.getElementById("searchBtn");
+  const loadingDiv = document.getElementById("loading");
 
-// --- API CONFIG ---
-const ADZUNA_APP_ID = "b39ca9ec";
-const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
+  // --- API CONFIG ---
+  const ADZUNA_APP_ID = "b39ca9ec";
+  const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
 
-// --- FETCH REMOTE JOBS ---
-async function fetchRemoteJobs(search = "") {
-  try {
-    console.log("🌍 Fetching remote jobs for:", search);
-    const response = await fetch(
-      `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`
-    );
-    const data = await response.json();
+  // --- Show loading spinner ---
+  function showLoading() {
+    if (loadingDiv) loadingDiv.style.display = "block";
+  }
 
-    remoteJobsDiv.innerHTML = "";
-    if (!data.jobs || data.jobs.length === 0) {
-      remoteJobsDiv.innerHTML = "<p>No remote jobs found.</p>";
-      return;
+  // --- Hide loading spinner ---
+  function hideLoading() {
+    if (loadingDiv) loadingDiv.style.display = "none";
+  }
+
+  // --- FETCH REMOTE JOBS ---
+  async function fetchRemoteJobs(search = "") {
+    try {
+      showLoading();
+      const response = await fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`);
+      const data = await response.json();
+
+      remoteJobsDiv.innerHTML = "";
+      data.jobs.slice(0, 10).forEach(job => {
+        const jobItem = document.createElement("li");
+        jobItem.innerHTML = `
+          <strong>${job.title}</strong><br>
+          ${job.company_name} – ${job.candidate_required_location}<br>
+          <a href="${job.url}" target="_blank">Apply Now</a>
+        `;
+        remoteJobsDiv.appendChild(jobItem);
+      });
+    } catch (error) {
+      console.error("Error fetching remote jobs:", error);
+      remoteJobsDiv.innerHTML = "<p>⚠️ Failed to load remote jobs.</p>";
+    } finally {
+      hideLoading();
     }
-
-    data.jobs.slice(0, 10).forEach(job => {
-      const jobDiv = document.createElement("div");
-      jobDiv.className = "job";
-      jobDiv.innerHTML = `
-        <strong>${job.title}</strong><br>
-        ${job.company_name} – ${job.candidate_required_location}<br>
-        <a href="${job.url}" target="_blank">Apply Now</a>
-      `;
-      remoteJobsDiv.appendChild(jobDiv);
-    });
-  } catch (error) {
-    console.error("Error fetching remote jobs:", error);
-    remoteJobsDiv.innerHTML = "<p>⚠️ Failed to load remote jobs.</p>";
   }
-}
 
-// --- FETCH LOCAL JOBS ---
-async function fetchLocalJobs(country = "us", search = "") {
-  try {
-    console.log("📍 Fetching local jobs in", country, "for:", search);
-    const response = await fetch(
-      `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`
-    );
-    if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
-    const data = await response.json();
+  // --- FETCH LOCAL JOBS ---
+  async function fetchLocalJobs(country = "us", search = "") {
+    try {
+      showLoading();
+      const response = await fetch(
+        `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
+      const data = await response.json();
 
-    localJobsDiv.innerHTML = "";
-    if (!data.results || data.results.length === 0) {
-      localJobsDiv.innerHTML = "<p>No local jobs found.</p>";
-      return;
+      localJobsDiv.innerHTML = "";
+      data.results.forEach(job => {
+        const jobItem = document.createElement("li");
+        jobItem.innerHTML = `
+          <strong>${job.title}</strong><br>
+          ${job.company.display_name} – ${job.location.display_name}<br>
+          <a href="${job.redirect_url}" target="_blank">Apply Now</a>
+        `;
+        localJobsDiv.appendChild(jobItem);
+      });
+    } catch (error) {
+      console.error("Error fetching local jobs:", error);
+      localJobsDiv.innerHTML = "<p>⚠️ Failed to load local jobs.</p>";
+    } finally {
+      hideLoading();
     }
+  }
 
-    data.results.forEach(job => {
-      const jobDiv = document.createElement("div");
-      jobDiv.className = "job";
-      jobDiv.innerHTML = `
-        <strong>${job.title}</strong><br>
-        ${job.company.display_name} – ${job.location.display_name}<br>
-        <a href="${job.redirect_url}" target="_blank">Apply Now</a>
-      `;
-      localJobsDiv.appendChild(jobDiv);
+  // --- GET STARTED BUTTON ---
+  if (viewJobsBtn) {
+    viewJobsBtn.addEventListener("click", () => {
+      console.log("Get Started button clicked 🎉");
+
+      if (welcomeScreen) welcomeScreen.style.display = "none";
+      if (jobScreen) jobScreen.style.display = "block";
+
+      fetchRemoteJobs();
+      fetchLocalJobs(countrySelect ? countrySelect.value : "us");
     });
-  } catch (error) {
-    console.error("Error fetching local jobs:", error);
-    localJobsDiv.innerHTML = "<p>⚠️ Failed to load local jobs.</p>";
+  } else {
+    console.error("⚠️ viewJobsBtn not found in DOM");
   }
-}
 
-// --- SEARCH FUNCTION ---
-function triggerSearch() {
-  const searchTerm = jobSearchInput.value.trim();
-  console.log("🔍 TriggerSearch called | Term:", `"${searchTerm}"`, "| Country:", countrySelect.value);
+  // --- COUNTRY DROPDOWN ---
+  if (countrySelect) {
+    countrySelect.addEventListener("change", () => {
+      fetchLocalJobs(countrySelect.value, jobTitleInput.value);
+    });
+  }
 
-  fetchRemoteJobs(searchTerm);
-  fetchLocalJobs(countrySelect.value, searchTerm);
-}
-
-// --- EVENT LISTENERS ---
-viewJobsBtn.addEventListener("click", () => {
-  console.log("✅ Get Started button clicked");
-  welcomeScreen.style.display = "none";
-  jobBoard.style.display = "block";
-
-  fetchRemoteJobs();
-  fetchLocalJobs(countrySelect.value);
-});
-
-// Country change
-countrySelect.addEventListener("change", () => {
-  console.log("🌎 Country changed:", countrySelect.value);
-  triggerSearch();
-});
-
-// Search button click
-searchBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  console.log("🔘 Search button clicked");
-  triggerSearch();
-});
-
-// Enter key in search box
-jobSearchInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    console.log("⏎ Enter pressed in search box");
-    triggerSearch();
+  // --- SEARCH BUTTON ---
+  if (searchBtn) {
+    searchBtn.addEventListener("click", () => {
+      const searchTerm = jobTitleInput.value.trim();
+      fetchRemoteJobs(searchTerm);
+      fetchLocalJobs(countrySelect ? countrySelect.value : "us", searchTerm);
+    });
   }
 });
-// --- INITIAL LOAD ---
-welcomeScreen.style.display = "block";
-jobBoard.style.display = "none";  
+// --- IGNORE ---
 
 
 
