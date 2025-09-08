@@ -4,65 +4,115 @@ document.addEventListener("DOMContentLoaded", () => {
   const viewJobsBtn = document.getElementById("viewJobsBtn");
   const welcomeScreen = document.getElementById("welcome-screen");
   const jobBoard = document.getElementById("job-board");
+  const savedJobsScreen = document.getElementById("saved-jobs-screen");
   const remoteJobsDiv = document.getElementById("remote-jobs");
   const localJobsDiv = document.getElementById("local-jobs");
   const countrySelect = document.getElementById("country-select");
   const jobSearchInput = document.getElementById("job-search");
-  const loadingDiv = document.getElementById("loading");
+  const searchBtn = document.getElementById("search-btn");
+  const loadingMessage = document.getElementById("loading-message");
+  const viewSavedJobsBtn = document.getElementById("viewSavedJobsBtn");
+  const backToJobsBtn = document.getElementById("backToJobsBtn");
+  const savedJobsList = document.getElementById("saved-jobs-list");
 
   // --- API CONFIG ---
   const ADZUNA_APP_ID = "b39ca9ec";
   const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
 
-  // Only supported Adzuna countries
-  const supportedCountries = [
-    "us","gb","ca","au","de","fr","es","it","nl",
-    "br","za","pl","ru","in","sg","be","ch","mx","nz"
-  ];
-
-  // --- SHOW LOADING ---
-  function showLoading() {
-    loadingDiv.style.display = "block";
+  // --- UTILS ---
+  function showLoading(show) {
+    loadingMessage.style.display = show ? "block" : "none";
   }
-  function hideLoading() {
-    loadingDiv.style.display = "none";
+
+  function createJobElement(job, isRemote = false) {
+    const jobDiv = document.createElement("div");
+    jobDiv.className = "job";
+    const jobUrl = isRemote ? job.url : job.redirect_url;
+    const company = isRemote ? job.company_name : job.company.display_name;
+    const location = isRemote ? job.candidate_required_location : job.location.display_name;
+
+    jobDiv.innerHTML = `
+      <strong>${job.title}</strong><br>
+      ${company} – ${location}<br>
+      <a href="${jobUrl}" target="_blank">Apply Now</a><br>
+      <button class="save-job-btn">⭐ Save Job</button>
+    `;
+
+    jobDiv.querySelector(".save-job-btn").addEventListener("click", () => {
+      saveJob({
+        title: job.title,
+        company,
+        location,
+        url: jobUrl,
+        savedAt: new Date().toISOString()
+      });
+    });
+
+    return jobDiv;
+  }
+
+  // --- FAVORITES STORAGE ---
+  async function saveJob(job) {
+    const data = await chrome.storage.local.get(["savedJobs"]);
+    let savedJobs = data.savedJobs || [];
+
+    // filter out jobs older than 30 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    savedJobs = savedJobs.filter(j => new Date(j.savedAt) > cutoff);
+
+    if (savedJobs.length >= 4) {
+      alert("⚠️ Free limit reached: Only 4 jobs can be saved every 30 days. Upgrade for unlimited saves.");
+      return;
+    }
+
+    savedJobs.push(job);
+    await chrome.storage.local.set({ savedJobs });
+    alert("✅ Job saved!");
+  }
+
+  async function loadSavedJobs() {
+    const data = await chrome.storage.local.get(["savedJobs"]);
+    const savedJobs = data.savedJobs || [];
+
+    savedJobsList.innerHTML = "";
+    if (savedJobs.length === 0) {
+      savedJobsList.innerHTML = "<p>No saved jobs yet.</p>";
+      return;
+    }
+
+    savedJobs.forEach(job => {
+      const jobDiv = document.createElement("div");
+      jobDiv.className = "job";
+      jobDiv.innerHTML = `
+        <strong>${job.title}</strong><br>
+        ${job.company} – ${job.location}<br>
+        <a href="${job.url}" target="_blank">Apply Now</a><br>
+        <small>Saved on: ${new Date(job.savedAt).toLocaleDateString()}</small>
+      `;
+      savedJobsList.appendChild(jobDiv);
+    });
   }
 
   // --- FETCH REMOTE JOBS ---
   async function fetchRemoteJobs(search = "") {
     try {
-      showLoading();
       const response = await fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`);
       const data = await response.json();
 
       remoteJobsDiv.innerHTML = "";
       data.jobs.slice(0, 10).forEach(job => {
-        const jobDiv = document.createElement("div");
-        jobDiv.className = "job";
-        jobDiv.innerHTML = `
-          <strong>${job.title}</strong><br>
-          ${job.company_name} – ${job.candidate_required_location}<br>
-          <a href="${job.url}" target="_blank">Apply Now</a>
-        `;
-        remoteJobsDiv.appendChild(jobDiv);
+        remoteJobsDiv.appendChild(createJobElement(job, true));
       });
     } catch (error) {
       console.error("Error fetching remote jobs:", error);
       remoteJobsDiv.innerHTML = "<p>⚠️ Failed to load remote jobs.</p>";
-    } finally {
-      hideLoading();
     }
   }
 
   // --- FETCH LOCAL JOBS ---
   async function fetchLocalJobs(country = "us", search = "") {
-    if (!supportedCountries.includes(country)) {
-      localJobsDiv.innerHTML = "<p>⚠️ Local job search not available for the selected country.</p>";
-      return;
-    }
-
     try {
-      showLoading();
       const response = await fetch(
         `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`
       );
@@ -71,56 +121,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localJobsDiv.innerHTML = "";
       data.results.forEach(job => {
-        const jobDiv = document.createElement("div");
-        jobDiv.className = "job";
-        jobDiv.innerHTML = `
-          <strong>${job.title}</strong><br>
-          ${job.company.display_name} – ${job.location.display_name}<br>
-          <a href="${job.redirect_url}" target="_blank">Apply Now</a>
-        `;
-        localJobsDiv.appendChild(jobDiv);
+        localJobsDiv.appendChild(createJobElement(job, false));
       });
     } catch (error) {
       console.error("Error fetching local jobs:", error);
       localJobsDiv.innerHTML = "<p>⚠️ Failed to load local jobs.</p>";
-    } finally {
-      hideLoading();
     }
   }
 
   // --- GET STARTED BUTTON ---
-  if (viewJobsBtn) {
-    viewJobsBtn.addEventListener("click", () => {
-      console.log("Get Started button clicked 🎉");
-
-      if (welcomeScreen) welcomeScreen.style.display = "none";
-      if (jobBoard) jobBoard.style.display = "block";
-
-      // Initial load
-      fetchRemoteJobs();
-      fetchLocalJobs(countrySelect.value);
-    });
-  }
+  viewJobsBtn.addEventListener("click", () => {
+    welcomeScreen.style.display = "none";
+    jobBoard.style.display = "block";
+    fetchRemoteJobs();
+    fetchLocalJobs(countrySelect.value);
+  });
 
   // --- COUNTRY DROPDOWN ---
-  if (countrySelect) {
-    countrySelect.addEventListener("change", () => {
-      fetchLocalJobs(countrySelect.value, jobSearchInput.value);
-    });
-  }
+  countrySelect.addEventListener("change", () => {
+    showLoading(true);
+    fetchLocalJobs(countrySelect.value, jobSearchInput.value).finally(() => showLoading(false));
+  });
 
-  // --- SEARCH INPUT ---
-  if (jobSearchInput) {
-    jobSearchInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        const searchTerm = jobSearchInput.value;
-        fetchRemoteJobs(searchTerm);
-        fetchLocalJobs(countrySelect.value, searchTerm);
-      }
-    });
-  }
+  // --- SEARCH BUTTON ---
+  searchBtn.addEventListener("click", () => {
+    const searchTerm = jobSearchInput.value;
+    showLoading(true);
+    Promise.all([
+      fetchRemoteJobs(searchTerm),
+      fetchLocalJobs(countrySelect.value, searchTerm)
+    ]).finally(() => showLoading(false));
+  });
+
+  // --- VIEW SAVED JOBS ---
+  viewSavedJobsBtn.addEventListener("click", () => {
+    jobBoard.style.display = "none";
+    savedJobsScreen.style.display = "block";
+    loadSavedJobs();
+  });
+
+  // --- BACK TO LISTINGS ---
+  backToJobsBtn.addEventListener("click", () => {
+    savedJobsScreen.style.display = "none";
+    jobBoard.style.display = "block";
+  });
 });
-// --- IGNORE ---
+
 
 
 
