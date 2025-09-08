@@ -3,55 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Finder Extension</title>
-  <link rel="stylesheet" href="popup.css">
+  <title>Global Inter-Connect Jobs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 350px;
+      padding: 10px;
+    }
+    #welcomeScreen, #jobScreen {
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #job-list {
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+      margin-top: 10px;
+    }
+    .job {
+      border-bottom: 1px solid #ddd;
+      padding: 8px 0;
+    }
+    .job a {
+      display: inline-block;
+      margin-top: 4px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .job a:hover {
+      text-decoration: underline;
+    }
+    #search-bar {
+      margin: 10px 0;
+    }
+    #jobTitleInput {
+      width: 65%;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    select {
+      margin: 8px 0;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    #loading {
+      display: none;
+      margin: 10px 0;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
 </head>
 <body>
-  <!-- Welcome Screen -->
+  <!-- Welcome screen -->
   <div id="welcomeScreen">
-    <h2>Welcome to Job Finder</h2>
+    <h2>🌍 Welcome to Global Inter-Connect Jobs</h2>
+    <p>Find remote and local opportunities worldwide.</p>
     <button id="viewJobsBtn">Get Started</button>
   </div>
 
-  <!-- Job Search Screen -->
+  <!-- Job board -->
   <div id="jobScreen" style="display:none;">
-    <h2>Find Jobs</h2>
+    <h2>Job Listings</h2>
 
-    <!-- Country Select -->
-    <label for="countrySelect">Select Country:</label>
+    <!-- Country selector -->
+    <label for="countrySelect">Choose Country:</label>
     <select id="countrySelect">
-      <option value="us">United States</option>
-      <option value="ca">Canada</option>
+      <option value="us" selected>United States</option>
       <option value="gb">United Kingdom</option>
+      <option value="ca">Canada</option>
       <option value="au">Australia</option>
-    </select>
+      <option value="de">Germany</option>
+      <option value="fr">France</option>
+      <option value="es">Spain</option>
+      <option value="it">Italy</option>
+      <option value="nl">Netherlands</option>
+      <option value="se">Sweden</option>
+      <option value="no">Norway</option>
+      <option value="br">Brazil</option>
+      <option value="mx">Mexico</option>
+      <option value="in">India</option>
+      <option value="sg">Singapore</option>
+      <option value="za">South Africa</option>
+      <option value="ae">United Arab Emirates</option>
+      <option value="jp">Japan</option>
+      <option value="cn">China</option>
+      <option value="ch">Switzerland</option>
+      <option value="be">Belgium</option>
+      <option value="at">Austria</option>
+      <option value="dk">Denmark</option>
+      <option value="fi">Finland</option>
+      <option value="ie">Ireland</option>
+      <option value="nz">New Zealand</option>
+    </select>  
 
-    <!-- Job Title Input -->
-    <label for="jobTitleInput">Enter Job Title:</label>
-    <input type="text" id="jobTitleInput" placeholder="e.g., Software Engineer">
-
-    <!-- Search Button -->
-    <button id="searchBtn">Search</button>
-
-    <!-- Loading Spinner/Message -->
-    <div id="loading" style="display:none; margin:10px 0; text-align:center;">
-      <div class="spinner"></div>
-      <p>Loading jobs, please wait...</p>
+    <!-- Search bar -->
+    <div id="search-bar">
+      <input type="text" id="jobTitleInput" placeholder="Search for jobs">
+      <button id="searchBtn">Search</button>
     </div>
 
-    <!-- Remote Jobs Section -->
-    <h3>Remote Jobs</h3>
-    <ul id="remoteJobs"></ul>
+    <!-- Loading spinner/message -->
+    <div id="loading">🔄 Searching for jobs...</div>
 
-    <!-- Local Jobs Section -->
-    <h3>Local Jobs</h3>
-    <ul id="localJobs"></ul>
+    <!-- Job list -->
+    <div id="job-list">
+      <h3>🌐 Remote Jobs</h3>
+      <ul id="remoteJobs"></ul>
+
+      <h3>📍 Local Jobs</h3>
+      <ul id="localJobs"></ul>
+    </div>
   </div>
 
-  <!-- JS -->
+  <!-- External script -->
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
