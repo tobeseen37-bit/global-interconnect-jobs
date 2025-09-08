@@ -17,11 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- FETCH REMOTE JOBS ---
   async function fetchRemoteJobs(search = "") {
     try {
-      const response = await fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`);
+      const response = await fetch(
+        `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`
+      );
       const data = await response.json();
 
       remoteJobsDiv.innerHTML = "";
-      if (!data.jobs || data.jobs.length === 0) {
+      if (data.jobs.length === 0) {
         remoteJobsDiv.innerHTML = "<p>No remote jobs found.</p>";
         return;
       }
@@ -73,30 +75,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- GET STARTED BUTTON ---
-  if (viewJobsBtn) {
-    viewJobsBtn.addEventListener("click", () => {
-      console.log("Get Started button clicked 🎉");
-
-      welcomeScreen.style.display = "none";
-      jobBoard.style.display = "block";
-
-      fetchRemoteJobs();
-      fetchLocalJobs(countrySelect ? countrySelect.value : "us");
-    });
-  }
-
-  // --- COUNTRY DROPDOWN ---
-  if (countrySelect) {
-    countrySelect.addEventListener("change", () => {
-      fetchLocalJobs(countrySelect.value, jobSearchInput.value);
-    });
-  }
-
-  // --- SEARCH FUNCTION (debounced) ---
+  // --- SEARCH FUNCTION ---
   let searchTimeout;
   function triggerSearch() {
     const searchTerm = jobSearchInput.value.trim();
+    console.log("🔍 Searching for:", searchTerm, "in", countrySelect.value);
+
     fetchRemoteJobs(searchTerm);
     fetchLocalJobs(countrySelect ? countrySelect.value : "us", searchTerm);
   }
@@ -104,12 +88,28 @@ document.addEventListener("DOMContentLoaded", () => {
   if (jobSearchInput) {
     jobSearchInput.addEventListener("input", () => {
       clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(triggerSearch, 500); // debounce 500ms
+      searchTimeout = setTimeout(triggerSearch, 500); // debounce
     });
   }
 
   if (searchBtn) {
-    searchBtn.addEventListener("click", triggerSearch);
+    searchBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // stop default form submit
+      triggerSearch();
+    });
+  }
+
+  // --- GET STARTED BUTTON ---
+  if (viewJobsBtn) {
+    viewJobsBtn.addEventListener("click", () => {
+      console.log("Get Started button clicked 🎉");
+
+      if (welcomeScreen) welcomeScreen.style.display = "none";
+      if (jobBoard) jobBoard.style.display = "block";
+
+      fetchRemoteJobs();
+      fetchLocalJobs(countrySelect ? countrySelect.value : "us");
+    });
   }
 });
 // --- IGNORE ---

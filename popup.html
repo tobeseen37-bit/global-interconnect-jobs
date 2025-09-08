@@ -49,13 +49,15 @@
       margin: 10px 0;
     }
     #job-search {
-      width: 70%;
+      width: 65%;
       padding: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
     #search-btn {
-      padding: 6px 12px;
+      padding: 6px 10px;
+      margin-left: 5px;
+      background-color: #28a745;
     }
     select {
       margin: 8px 0;
@@ -93,22 +95,25 @@
     </select>  
 
     <!-- Search bar -->
-    <div id="search-bar">
-      <input type="text" id="job-search" placeholder="Search for jobs">
-      <button id="search-btn">Search</button>
-    </div>
-
-    <!-- Job list -->
-    <h3>🌍 Remote Jobs</h3>
-    <div id="remote-jobs"></div>
-
-    <h3>📍 Local Jobs</h3>
-    <div id="local-jobs"></div>
+    <div id
+    <input type="text" id="job-search" placeholder="Search for jobs...">
+    <button id="search-btn">Search</button>
   </div>
 
-  <script src="popup.js"></script>
+    <!-- Remote jobs -->
+    <div id="remote-jobs">
+      <h3>Remote Jobs</h3>
+      <div id="remote-job-list"></div>
+    </div>
+
+    <!-- Local jobs -->
+    <div id="local-jobs">
+      <h3>Local Jobs</h3>
+      <div id="local-job-list"></div>
+    </div>
+  </div>
 </body>
-</html>
+</html> 
 
 
 
