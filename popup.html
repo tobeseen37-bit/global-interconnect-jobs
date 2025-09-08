@@ -71,7 +71,7 @@
   <div id="welcome-screen">
     <h2>🌍 Welcome to Global Inter-Connect Jobs</h2>
     <p>Find remote and local opportunities worldwide.</p>
-    <button id="viewJobsBtn">Get Started</button>
+    <button id="viewJobsBtn" type="button">Get Started</button>
   </div>
 
   <!-- Job board -->
@@ -95,25 +95,24 @@
     </select>  
 
     <!-- Search bar -->
-    <div id
-    <input type="text" id="job-search" placeholder="Search for jobs...">
-    <button id="search-btn">Search</button>
-  </div>
+    <div id="search-bar">
+      <input type="text" id="job-search" placeholder="Search for jobs">
+      <button id="search-btn" type="button">Search</button>
+    </div>
 
     <!-- Remote jobs -->
-    <div id="remote-jobs">
-      <h3>Remote Jobs</h3>
-      <div id="remote-job-list"></div>
-    </div>
+    <h3>🌍 Remote Jobs</h3>
+    <div id="remote-jobs"></div>
 
     <!-- Local jobs -->
-    <div id="local-jobs">
-      <h3>Local Jobs</h3>
-      <div id="local-job-list"></div>
-    </div>
+    <h3>📍 Local Jobs</h3>
+    <div id="local-jobs"></div>
   </div>
+
+  <script src="popup.js"></script>
 </body>
-</html> 
+</html>
+
 
 
 
