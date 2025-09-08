@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const localJobsDiv = document.getElementById("local-jobs");
   const countrySelect = document.getElementById("country-select");
   const jobSearchInput = document.getElementById("job-search");
+  const searchBtn = document.getElementById("search-btn");
 
   // --- API CONFIG ---
   const ADZUNA_APP_ID = "b39ca9ec";
@@ -20,6 +21,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
 
       remoteJobsDiv.innerHTML = "";
+      if (!data.jobs || data.jobs.length === 0) {
+        remoteJobsDiv.innerHTML = "<p>No remote jobs found.</p>";
+        return;
+      }
+
       data.jobs.slice(0, 10).forEach(job => {
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
@@ -46,6 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
 
       localJobsDiv.innerHTML = "";
+      if (!data.results || data.results.length === 0) {
+        localJobsDiv.innerHTML = "<p>No local jobs found.</p>";
+        return;
+      }
+
       data.results.forEach(job => {
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
@@ -67,27 +78,39 @@ document.addEventListener("DOMContentLoaded", () => {
     viewJobsBtn.addEventListener("click", () => {
       console.log("Get Started button clicked 🎉");
 
-      // Hide welcome, show job board
       welcomeScreen.style.display = "none";
       jobBoard.style.display = "block";
 
-      // Load jobs immediately
       fetchRemoteJobs();
-      fetchLocalJobs(countrySelect.value);
+      fetchLocalJobs(countrySelect ? countrySelect.value : "us");
     });
   }
 
   // --- COUNTRY DROPDOWN ---
-  countrySelect.addEventListener("change", () => {
-    fetchLocalJobs(countrySelect.value, jobSearchInput.value);
-  });
+  if (countrySelect) {
+    countrySelect.addEventListener("change", () => {
+      fetchLocalJobs(countrySelect.value, jobSearchInput.value);
+    });
+  }
 
-  // --- SEARCH INPUT ---
-  jobSearchInput.addEventListener("input", () => {
-    const searchTerm = jobSearchInput.value;
+  // --- SEARCH FUNCTION (debounced) ---
+  let searchTimeout;
+  function triggerSearch() {
+    const searchTerm = jobSearchInput.value.trim();
     fetchRemoteJobs(searchTerm);
-    fetchLocalJobs(countrySelect.value, searchTerm);
-  });
+    fetchLocalJobs(countrySelect ? countrySelect.value : "us", searchTerm);
+  }
+
+  if (jobSearchInput) {
+    jobSearchInput.addEventListener("input", () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(triggerSearch, 500); // debounce 500ms
+    });
+  }
+
+  if (searchBtn) {
+    searchBtn.addEventListener("click", triggerSearch);
+  }
 });
 // --- IGNORE ---
 

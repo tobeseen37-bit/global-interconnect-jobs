@@ -2,51 +2,113 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Global Inter-Connect Jobs 🌍</title>
-  <link rel="stylesheet" href="popup.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Inter-Connect Jobs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 350px;
+      padding: 10px;
+    }
+    #welcome-screen, #job-board {
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #job-list {
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+      margin-top: 10px;
+    }
+    .job {
+      border-bottom: 1px solid #ddd;
+      padding: 8px 0;
+    }
+    .job a {
+      display: inline-block;
+      margin-top: 4px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .job a:hover {
+      text-decoration: underline;
+    }
+    #search-bar {
+      margin: 10px 0;
+    }
+    #job-search {
+      width: 70%;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #search-btn {
+      padding: 6px 12px;
+    }
+    select {
+      margin: 8px 0;
+      padding: 5px;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-  <!-- Welcome Screen -->
+  <!-- Welcome screen -->
   <div id="welcome-screen">
-    <h1>Welcome to Global Inter-Connect Jobs 🌍</h1>
+    <h2>🌍 Welcome to Global Inter-Connect Jobs</h2>
     <p>Find remote and local opportunities worldwide.</p>
     <button id="viewJobsBtn">Get Started</button>
   </div>
 
-  <!-- Job Board -->
-  <div id="job-board" style="display: none;">
-    <h2>Job Board</h2>
+  <!-- Job board -->
+  <div id="job-board" style="display:none;">
+    <h2>Job Listings</h2>
 
-    <!-- Job Search -->
-    <input type="text" id="job-search" placeholder="Search jobs (e.g. developer, designer)">
-
-    <!-- Country Selector -->
-    <label for="country-select">🌎 Choose Country:</label>
+    <!-- Country selector -->
+    <label for="country-select">Choose Country:</label>
     <select id="country-select">
-      <option value="us">🇺🇸 United States</option>
-      <option value="gb">🇬🇧 United Kingdom</option>
-      <option value="ca">🇨🇦 Canada</option>
-      <option value="au">🇦🇺 Australia</option>
-      <option value="de">🇩🇪 Germany</option>
-      <option value="fr">🇫🇷 France</option>
-      <option value="es">🇪🇸 Spain</option>
-      <option value="it">🇮🇹 Italy</option>
-      <option value="br">🇧🇷 Brazil</option>
-      <option value="in">🇮🇳 India</option>
-    </select>
+      <option value="us" selected>United States</option>
+      <option value="gb">United Kingdom</option>
+      <option value="ca">Canada</option>
+      <option value="au">Australia</option>
+      <option value="de">Germany</option>
+      <option value="fr">France</option>
+      <option value="es">Spain</option>
+      <option value="it">Italy</option>
+      <option value="nl">Netherlands</option>
+      <option value="se">Sweden</option>
+      <option value="no">Norway</option>
+    </select>  
 
-    <!-- Remote Jobs Section -->
-    <h3>🌐 Remote Jobs</h3>
+    <!-- Search bar -->
+    <div id="search-bar">
+      <input type="text" id="job-search" placeholder="Search for jobs">
+      <button id="search-btn">Search</button>
+    </div>
+
+    <!-- Job list -->
+    <h3>🌍 Remote Jobs</h3>
     <div id="remote-jobs"></div>
 
-    <!-- Local Jobs Section -->
     <h3>📍 Local Jobs</h3>
     <div id="local-jobs"></div>
   </div>
 
-  <!-- External script only (NO inline scripts) -->
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
