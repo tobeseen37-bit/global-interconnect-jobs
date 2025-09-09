@@ -10,12 +10,12 @@
       width: 350px;
       padding: 10px;
     }
-    #welcome-screen, #job-board, #saved-jobs-screen {
+    #welcome-screen, #job-board {
       text-align: center;
     }
     button {
       padding: 8px 15px;
-      margin: 6px 0;
+      margin: 8px 0;
       background-color: #007bff;
       color: white;
       border: none;
@@ -49,7 +49,7 @@
       margin: 10px 0;
     }
     #job-search {
-      width: 90%;
+      width: 70%;
       padding: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
@@ -59,18 +59,22 @@
       padding: 5px;
       border-radius: 5px;
     }
-    .nav-buttons {
-      margin-top: 10px;
-    }
     #loading-message {
+      display: none;
       margin: 10px 0;
       font-style: italic;
       color: gray;
     }
-    #saved-counter {
-      margin-bottom: 10px;
-      font-weight: bold;
-      color: #333;
+    #saved-jobs {
+      margin-top: 20px;
+      text-align: left;
+    }
+    #saved-jobs h3 {
+      margin-bottom: 5px;
+    }
+    #saved-jobs-counter {
+      font-size: 0.9em;
+      color: gray;
     }
   </style>
 </head>
@@ -100,6 +104,13 @@
       <option value="nl">Netherlands</option>
       <option value="se">Sweden</option>
       <option value="no">Norway</option>
+      <option value="in">India</option>
+      <option value="mx">Mexico</option>
+      <option value="za">South Africa</option>
+      <option value="sg">Singapore</option>
+      <option value="nz">New Zealand</option>
+      <option value="pl">Poland</option>
+      <option value="br">Brazil</option>
     </select>  
 
     <!-- Search bar -->
@@ -108,36 +119,29 @@
       <button id="search-btn">Search</button>
     </div>
 
-    <!-- Loading message -->
-    <div id="loading-message" style="display:none;">🔍 Searching jobs...</div>
+    <!-- Loading -->
+    <div id="loading-message">🔎 Searching for jobs...</div>
 
     <!-- Job list -->
     <div id="job-list">
       <h3>🌐 Remote Jobs</h3>
       <div id="remote-jobs"></div>
-
       <h3>📍 Local Jobs</h3>
       <div id="local-jobs"></div>
     </div>
 
-    <div class="nav-buttons">
-      <button id="viewSavedJobsBtn">⭐ View Saved Jobs</button>
+    <!-- Saved Jobs Section -->
+    <div id="saved-jobs">
+      <h3>💾 Saved Jobs <span id="saved-jobs-counter"></span></h3>
+      <div id="saved-jobs-list"></div>
     </div>
   </div>
 
-  <!-- Saved Jobs Screen -->
-  <div id="saved-jobs-screen" style="display:none;">
-    <h2>⭐ Saved Jobs</h2>
-    <div id="saved-counter"></div>
-    <div id="saved-jobs-list"></div>
-    <div class="nav-buttons">
-      <button id="backToJobsBtn">⬅️ Back to Listings</button>
-    </div>
-  </div>
-
+  <!-- External Script -->
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
