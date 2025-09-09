@@ -123,6 +123,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // --- Job Badge Logic ---
+  function getJobBadge(createdAt) {
+    if (!createdAt) return "";
+
+    const createdDate = new Date(createdAt);
+    const now = new Date();
+    const diffHours = (now - createdDate) / (1000 * 60 * 60);
+
+    if (diffHours <= 48) {
+      return `<span class="badge info">New</span>`;
+    }
+    if (diffHours > 720) { // ~30 days
+      return `<span class="badge danger">Expiring Soon</span>`;
+    }
+    return "";
+  }
+
   // --- Modal Handling ---
   function openJobModal(job) {
     modalBody.innerHTML = `
@@ -161,11 +178,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       remoteJobsDiv.innerHTML = "";
       data.jobs.slice(0, 10).forEach(job => {
+        const badge = getJobBadge(job.publication_date);
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
         jobDiv.innerHTML = `
           <strong>${job.title}</strong> 
-          <span class="badge info">Remote</span><br>
+          <span class="badge info">Remote</span> ${badge}<br>
           ${job.company_name} – ${job.candidate_required_location}
         `;
         jobDiv.addEventListener("click", () => {
@@ -199,11 +217,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localJobsDiv.innerHTML = "";
       data.results.forEach(job => {
+        const badge = getJobBadge(job.created);
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
         jobDiv.innerHTML = `
           <strong>${job.title}</strong> 
-          <span class="badge warning">Local</span><br>
+          <span class="badge warning">Local</span> ${badge}<br>
           ${job.company.display_name} – ${job.location.display_name}
         `;
         jobDiv.addEventListener("click", () => {
@@ -256,6 +275,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
 
 
 
