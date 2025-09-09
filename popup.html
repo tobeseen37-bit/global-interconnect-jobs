@@ -14,8 +14,8 @@
       text-align: center;
     }
     button {
-      padding: 8px 15px;
-      margin: 8px 0;
+      padding: 8px 14px;
+      margin: 5px 0;
       background-color: #007bff;
       color: white;
       border: none;
@@ -49,7 +49,7 @@
       margin: 10px 0;
     }
     #job-search {
-      width: 70%;
+      width: 90%;
       padding: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
@@ -59,22 +59,31 @@
       padding: 5px;
       border-radius: 5px;
     }
-    #loading-message {
+    /* --- Modal Styles --- */
+    #job-modal {
       display: none;
-      margin: 10px 0;
-      font-style: italic;
-      color: gray;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
     }
-    #saved-jobs {
-      margin-top: 20px;
+    #modal-content {
+      background: white;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
       text-align: left;
     }
-    #saved-jobs h3 {
-      margin-bottom: 5px;
-    }
-    #saved-jobs-counter {
-      font-size: 0.9em;
-      color: gray;
+    #modal-close {
+      float: right;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -104,43 +113,41 @@
       <option value="nl">Netherlands</option>
       <option value="se">Sweden</option>
       <option value="no">Norway</option>
-      <option value="in">India</option>
-      <option value="mx">Mexico</option>
-      <option value="za">South Africa</option>
-      <option value="sg">Singapore</option>
-      <option value="nz">New Zealand</option>
-      <option value="pl">Poland</option>
-      <option value="br">Brazil</option>
     </select>  
 
     <!-- Search bar -->
     <div id="search-bar">
       <input type="text" id="job-search" placeholder="Search for jobs">
-      <button id="search-btn">Search</button>
+      <button id="searchBtn">Search</button>
     </div>
-
-    <!-- Loading -->
-    <div id="loading-message">🔎 Searching for jobs...</div>
 
     <!-- Job list -->
     <div id="job-list">
-      <h3>🌐 Remote Jobs</h3>
+      <h3>🌍 Remote Jobs</h3>
       <div id="remote-jobs"></div>
       <h3>📍 Local Jobs</h3>
       <div id="local-jobs"></div>
     </div>
+  </div>
 
-    <!-- Saved Jobs Section -->
-    <div id="saved-jobs">
-      <h3>💾 Saved Jobs <span id="saved-jobs-counter"></span></h3>
-      <div id="saved-jobs-list"></div>
+  <!-- Job Modal -->
+  <div id="job-modal">
+    <div id="modal-content">
+      <span id="modal-close">&times;</span>
+      <h3 id="modal-title"></h3>
+      <p><strong>Company:</strong> <span id="modal-company"></span></p>
+      <p><strong>Location:</strong> <span id="modal-location"></span></p>
+      <p id="modal-description"></p>
+      <a id="modal-link" href="#" target="_blank">Apply Now</a>
+      <br><br>
+      <button id="modal-save-btn">Save Job</button>
     </div>
   </div>
 
-  <!-- External Script -->
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
