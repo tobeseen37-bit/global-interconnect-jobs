@@ -44,13 +44,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const jobDiv = document.createElement("div");
       jobDiv.className = "saved-job";
       jobDiv.innerHTML = `
-        <strong>${job.title}</strong> – ${job.company}<br>
+        <strong>${job.title}</strong> – ${job.company}
+        <span class="badge info">Saved</span><br>
         <a href="${job.url}" target="_blank">Apply Now</a>
         <span class="delete-btn" data-index="${index}">❌ Delete</span>
       `;
       savedJobsList.appendChild(jobDiv);
     });
-    savedJobsCounter.textContent = `${jobs.length}/4 this month`;
+    savedJobsCounter.innerHTML = `<span class="badge info">${jobs.length}/4 this month</span>`;
 
     // Attach delete handlers
     document.querySelectorAll(".delete-btn").forEach(btn => {
@@ -101,10 +102,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateSearchHistoryUI() {
     const history = getSearchHistory();
-    searchHistoryDiv.innerHTML = "";
+    const historyList = document.getElementById("history-list");
+    historyList.innerHTML = "";
 
     if (history.length === 0) {
-      searchHistoryDiv.innerHTML = "<p>No recent searches.</p>";
+      historyList.innerHTML = "<p>No recent searches.</p>";
       return;
     }
 
@@ -117,14 +119,14 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchRemoteJobs(term);
         fetchLocalJobs(countrySelect ? countrySelect.value : "us", term);
       });
-      searchHistoryDiv.appendChild(termBtn);
+      historyList.appendChild(termBtn);
     });
   }
 
   // --- Modal Handling ---
   function openJobModal(job) {
     modalBody.innerHTML = `
-      <div class="modal-header">${job.title}</div>
+      <div class="modal-header">${job.title} <span class="badge warning">Details</span></div>
       <p><strong>${job.company}</strong> – ${job.location}</p>
       <p>${job.description || "No description available."}</p>
       <a href="${job.url}" target="_blank"><button>Apply Now</button></a>
@@ -162,7 +164,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
         jobDiv.innerHTML = `
-          <strong>${job.title}</strong><br>
+          <strong>${job.title}</strong> 
+          <span class="badge info">Remote</span><br>
           ${job.company_name} – ${job.candidate_required_location}
         `;
         jobDiv.addEventListener("click", () => {
@@ -199,7 +202,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
         jobDiv.innerHTML = `
-          <strong>${job.title}</strong><br>
+          <strong>${job.title}</strong> 
+          <span class="badge warning">Local</span><br>
           ${job.company.display_name} – ${job.location.display_name}
         `;
         jobDiv.addEventListener("click", () => {
@@ -252,6 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 
 
 
