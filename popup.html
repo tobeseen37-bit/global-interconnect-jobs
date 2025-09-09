@@ -170,6 +170,28 @@
     #clear-history-btn:hover {
       background: #e0e0e0;
     }
+
+    /* ===== NEW ADDITIONS ===== */
+    #jobs-container {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+    }
+    #remote-jobs-wrapper, #local-jobs-wrapper {
+      flex: 1;
+    }
+    #remote-jobs, #local-jobs {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 6px;
+      background: #fff;
+    }
+    #remote-jobs-wrapper h3, #local-jobs-wrapper h3 {
+      text-align: center;
+      margin-top: 0;
+    }
   </style>
 </head>
 <body>
@@ -216,12 +238,16 @@
     <!-- Loading message -->
     <div id="loading-message" style="display:none;">Searching jobs...</div>
 
-    <!-- Job list -->
-    <div id="job-list">
-      <h3>🌐 Remote Jobs</h3>
-      <div id="remote-jobs"></div>
-      <h3>📍 Local Jobs</h3>
-      <div id="local-jobs"></div>
+    <!-- Jobs container: side-by-side -->
+    <div id="jobs-container">
+      <div id="remote-jobs-wrapper">
+        <h3>🌐 Remote Jobs</h3>
+        <div id="remote-jobs"></div>
+      </div>
+      <div id="local-jobs-wrapper">
+        <h3>📍 Local Jobs</h3>
+        <div id="local-jobs"></div>
+      </div>
     </div>
 
     <!-- Saved jobs -->
@@ -242,6 +268,7 @@
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
