@@ -201,7 +201,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-// Refactor popup layout and job fetching logic: improve saved jobs section, enhance loading message, and update country selection options for better user experience
+
+
 
 
 
