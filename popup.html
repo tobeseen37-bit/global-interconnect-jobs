@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Global Inter-Connect Jobs</title>
   <style>
     body {
@@ -173,6 +173,25 @@
     }
 
     /* ===== NEW ADDITIONS ===== */
+    #filters {
+      margin-top: 10px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #filters-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    #filters-row > * {
+      flex: 1;
+    }
+    #filters .small {
+      flex: 0 0 auto;
+    }
+
     #jobs-container {
       display: flex;
       gap: 15px;
@@ -192,6 +211,13 @@
     #remote-jobs-wrapper h3, #local-jobs-wrapper h3 {
       text-align: center;
       margin-top: 0;
+    }
+
+    /* small helper text */
+    .helper {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -221,7 +247,30 @@
       <option value="nl">Netherlands</option>
       <option value="se">Sweden</option>
       <option value="no">Norway</option>
-    </select>  
+    </select>
+
+    <!-- Unified Category filter -->
+    <div id="filters">
+      <div>
+        <label for="category-select">Category:</label>
+        <select id="category-select">
+          <option value="all" selected>All Categories</option>
+        </select>
+        <div class="helper">Categories pulled dynamically from Remotive + Adzuna APIs.</div>
+      </div>
+
+      <!-- City/state + visa -->
+      <div id="filters-row">
+        <div>
+          <label for="city-input">City / State (optional)</label>
+          <input type="text" id="city-input" placeholder="City or state (e.g., London, CA)" />
+        </div>
+        <div class="small" style="display:flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="visa-checkbox" />
+          <label for="visa-checkbox" style="margin:0;">Visa sponsorship</label>
+        </div>
+      </div>
+    </div>
 
     <!-- Search bar -->
     <div id="search-bar">
@@ -271,6 +320,10 @@
   <script src="popup.js"></script>
 </body>
 </html>
+
+
+
+
 
 
 

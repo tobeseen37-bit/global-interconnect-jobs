@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const jobSearchInput = document.getElementById("job-search");
   const searchBtn = document.getElementById("search-btn");
   const loadingMessage = document.getElementById("loading-message");
+  const categorySelect = document.getElementById("category-select"); // ✅ Single unified dropdown
 
   // Flags for loading
   let loadingRemote = false;
@@ -154,8 +155,8 @@ document.addEventListener("DOMContentLoaded", () => {
         termBtn.style.marginRight = "5px";
         termBtn.addEventListener("click", () => {
           jobSearchInput.value = term;
-          fetchRemoteJobs(term);
-          fetchLocalJobs(countrySelect ? countrySelect.value : "us", term);
+          fetchRemoteJobs(term, categorySelect ? categorySelect.value : "");
+          fetchLocalJobs(countrySelect ? countrySelect.value : "us", term, categorySelect ? categorySelect.value : "");
         });
 
         const deleteBtn = document.createElement("span");
@@ -217,12 +218,53 @@ document.addEventListener("DOMContentLoaded", () => {
     return "";
   }
 
+  // --- Fetch Categories (Unified Dropdown) ---
+  async function fetchCategories() {
+    try {
+      // Fetch Remotive categories
+      const remotiveRes = await fetch("https://remotive.com/api/remote-jobs/categories");
+      const remotiveData = await remotiveRes.json();
+
+      // Fetch Adzuna categories
+      const adzunaRes = await fetch(`https://api.adzuna.com/v1/api/jobs/us/categories?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}`);
+      const adzunaData = await adzunaRes.json();
+
+      if (categorySelect) {
+        categorySelect.innerHTML = `<option value="">All Categories</option>`; // ✅ Default
+
+        // Add Remotive categories
+        remotiveData.jobs.forEach(cat => {
+          const option = document.createElement("option");
+          option.value = `remotive:${cat.slug}`;
+          option.textContent = `🌍 Remote – ${cat.name}`;
+          categorySelect.appendChild(option);
+        });
+
+        // Add Adzuna categories
+        adzunaData.results.forEach(cat => {
+          const option = document.createElement("option");
+          option.value = `adzuna:${cat.tag}`;
+          option.textContent = `📍 Local – ${cat.label}`;
+          categorySelect.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  }
+
   // --- Fetch Jobs ---
-  async function fetchRemoteJobs(search = "") {
+  async function fetchRemoteJobs(search = "", category = "") {
     try {
       loadingRemote = true;
       updateLoadingMessage();
-      const response = await fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`);
+
+      let url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
+      if (category.startsWith("remotive:")) {
+        url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
+      }
+
+      const response = await fetch(url);
       const data = await response.json();
       remoteJobsDiv.innerHTML = "";
 
@@ -265,15 +307,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function fetchLocalJobs(country = "us", search = "") {
+  async function fetchLocalJobs(country = "us", search = "", category = "") {
     try {
       loadingLocal = true;
       updateLoadingMessage();
 
-      // ✅ Updated Adzuna API call with what + adgroup for search terms
-      const response = await fetch(
-        `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}&content-type=application/json`
-      );
+      let url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}&content-type=application/json`;
+
+      if (category.startsWith("adzuna:")) {
+        url += `&category=${encodeURIComponent(category.replace("adzuna:", ""))}`;
+      }
+
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
       const data = await response.json();
       localJobsDiv.innerHTML = "";
@@ -325,7 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function adjustPopupWidth() {
     const remoteWidth = remoteJobsDiv.scrollWidth;
     const localWidth = localJobsDiv.scrollWidth;
-    const padding = 40; // extra padding
+    const padding = 40;
     const totalWidth = remoteWidth + localWidth + padding;
     window.resizeTo(totalWidth, window.outerHeight);
   }
@@ -336,6 +381,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (welcomeScreen) welcomeScreen.style.display = "none";
       if (jobBoard) jobBoard.style.display = "block";
 
+      fetchCategories(); // ✅ Unified categories load here
       fetchRemoteJobs();
       fetchLocalJobs(countrySelect ? countrySelect.value : "us");
       updateSavedJobsUI();
@@ -345,24 +391,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (countrySelect) {
     countrySelect.addEventListener("change", () => {
-      fetchLocalJobs(countrySelect.value, jobSearchInput.value);
+      fetchLocalJobs(countrySelect.value, jobSearchInput.value, categorySelect ? categorySelect.value : "");
+    });
+  }
+
+  if (categorySelect) {
+    categorySelect.addEventListener("change", () => {
+      fetchRemoteJobs(jobSearchInput.value, categorySelect.value);
+      fetchLocalJobs(countrySelect ? countrySelect.value : "us", jobSearchInput.value, categorySelect.value);
     });
   }
 
   if (searchBtn) {
     searchBtn.addEventListener("click", () => {
       const searchTerm = jobSearchInput.value;
-      fetchRemoteJobs(searchTerm);
-      fetchLocalJobs(countrySelect ? countrySelect.value : "us", searchTerm);
+      fetchRemoteJobs(searchTerm, categorySelect ? categorySelect.value : "");
+      fetchLocalJobs(countrySelect ? countrySelect.value : "us", searchTerm, categorySelect ? categorySelect.value : "");
       saveSearchHistory(searchTerm);
     });
   }
 });
 
 // --- ADZUNA CONFIG ---
-const ADZUNA_APP_ID = "b39ca9ec";   // your real Adzuna App ID
-const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1"; // your real App Key
+const ADZUNA_APP_ID = "b39ca9ec";
+const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
 // --- END ADZUNA CONFIG ---
+// --- IGNORE ---
+
+
+
+
+
 
 
 
