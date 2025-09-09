@@ -107,6 +107,30 @@
       color: #333;
     }
 
+    /* ====== BADGE STYLES ADDED (new feature) ====== */
+    .job-badges {
+      margin-top: 6px;
+      margin-bottom: 4px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      margin-right: 6px;
+      font-size: 11px;
+      border-radius: 12px;
+      color: #fff;
+      background: #6c757d; /* default gray */
+      line-height: 1;
+    }
+    /* color-coded variants */
+    .badge-remote { background: #007bff; }    /* blue */
+    .badge-local  { background: #6c757d; }    /* gray */
+    .badge-fulltime { background: #28a745; }  /* green */
+    .badge-parttime { background: #ffc107; color: #212529; } /* yellow/orange */
+    .badge-contract { background: #6f42c1; }  /* purple */
+    .badge-new { background: #17a2b8; }       /* teal - for future use */
+    /* ====== END BADGE STYLES ====== */
+
     /* Search history */
     #search-history {
       margin-top: 10px;
@@ -195,6 +219,10 @@
   <script src="popup.js"></script>
 </body>
 </html>
+
+
+
+
 
 
 

@@ -23,3 +23,43 @@ button:hover {
   font-size: 14px;
   color: #555;
 }
+/* --- Badge Styles --- */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: #4CAF50; /* Default green */
+  margin-left: 6px;
+}
+
+.badge.warning {
+  background: #FF9800; /* Orange */
+}
+
+.badge.danger {
+  background: #F44336; /* Red */
+}
+
+.badge.info {
+  background: #2196F3; /* Blue */
+}
+
+.badge.success {
+  background: #4CAF50; /* Green */
+}
+/* --- End Badge Styles --- */
+#jobs-list {
+  margin-top: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.job {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 5px 0;
+  text-align: left;
+} 
