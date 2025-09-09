@@ -156,12 +156,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const postedDate = new Date(dateStr);
     const now = new Date();
     const diffHours = (now - postedDate) / (1000 * 60 * 60);
+    const diffDays = diffHours / 24;
 
-    if (diffHours <= 48) {
-      return '<span class="badge new">New</span>';
-    } else if (diffHours > 48 && diffHours <= 168) { // 1 week
-      return '<span class="badge warning">Expiring Soon</span>';
-    }
+    if (diffHours <= 48) return '<span class="badge new">New</span>';
+    else if (diffDays >= 25) return '<span class="badge warning">Expiring Soon</span>';
     return "";
   }
 
@@ -174,7 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       remoteJobsDiv.innerHTML = "";
 
-      // Sort jobs: New first, then normal, then expiring soon
       const sortedJobs = data.jobs.slice(0, 10).sort(job => {
         const badge = getJobBadge(job.publication_date);
         if (badge.includes("New")) return -1;
@@ -235,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
         jobDiv.className = "job";
         jobDiv.innerHTML = `
           <strong>${job.title}</strong> 
-          <span class="badge warning">Local</span> ${badge}<br>
+          <span class="badge info">Local</span> ${badge}<br>
           ${job.company.display_name} – ${job.location.display_name}
         `;
         jobDiv.addEventListener("click", () => {
@@ -288,6 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 
 
 
