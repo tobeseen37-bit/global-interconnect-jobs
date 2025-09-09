@@ -1,140 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Inter-Connect Jobs</title>
+  <title>Job Finder</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      width: 380px;
+      width: 400px;
       padding: 10px;
     }
-    #welcome-screen, #job-board {
-      text-align: center;
-    }
-    button {
-      padding: 8px 16px;
-      margin: 6px 0;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    #job-list {
-      max-height: 220px;
-      overflow-y: auto;
-      text-align: left;
-      margin-top: 10px;
+    #job-board {
+      display: none;
     }
     .job {
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #ccc;
       padding: 8px 0;
-      cursor: pointer;
     }
-    .job:hover {
-      background: #f7f7f7;
+    .job strong {
+      font-size: 14px;
     }
-    #search-bar {
-      margin: 10px 0;
-    }
-    #job-search {
-      width: 90%;
-      padding: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    select {
-      margin: 8px 0;
-      padding: 5px;
-      border-radius: 5px;
-    }
-    #saved-jobs-section {
-      margin-top: 15px;
-      border-top: 2px solid #ddd;
-      padding-top: 10px;
-      text-align: left;
-    }
-    .saved-job {
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .delete-btn {
-      margin-left: 8px;
-      color: red;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    #loading-message {
-      margin: 10px 0;
-      font-style: italic;
-      color: gray;
-    }
-
-    /* Modal */
     .modal {
       display: none;
       position: fixed;
-      z-index: 9999;
+      z-index: 1000;
       left: 0; top: 0;
       width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
     }
     .modal-content {
       background: #fff;
-      padding: 15px;
-      border-radius: 8px;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
       width: 90%;
-      max-height: 80%;
-      overflow-y: auto;
+      max-width: 500px;
+    }
+    .close {
+      float: right;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #saved-jobs-counter {
+      font-size: 12px;
+      color: #555;
+      margin-top: 5px;
+    }
+    #search-history {
+      margin-top: 8px;
       text-align: left;
     }
-    .modal-header {
-      font-size: 18px;
-      margin-bottom: 10px;
+    #search-history ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 4px 0;
     }
-    .close-btn {
-      float: right;
-      font-size: 18px;
+    #search-history li button {
+      background: none;
+      border: none;
+      color: #007bff;
       cursor: pointer;
-      color: #333;
+      padding: 0;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
   <!-- Welcome screen -->
   <div id="welcome-screen">
-    <h2>🌍 Welcome to Global Inter-Connect Jobs</h2>
-    <p>Find remote and local opportunities worldwide.</p>
+    <h2>Welcome to Job Finder</h2>
     <button id="viewJobsBtn">Get Started</button>
   </div>
 
   <!-- Job board -->
-  <div id="job-board" style="display:none;">
-    <h2>Job Listings</h2>
-
-    <!-- Country selector -->
-    <label for="country-select">Choose Country:</label>
-    <select id="country-select">
-      <option value="us" selected>United States</option>
-      <option value="gb">United Kingdom</option>
-      <option value="ca">Canada</option>
-      <option value="au">Australia</option>
-      <option value="de">Germany</option>
-      <option value="fr">France</option>
-      <option value="es">Spain</option>
-      <option value="it">Italy</option>
-      <option value="nl">Netherlands</option>
-      <option value="se">Sweden</option>
-      <option value="no">Norway</option>
-    </select>  
+  <div id="job-board">
+    <h2>Find Jobs</h2>
 
     <!-- Search bar -->
     <div id="search-bar">
@@ -142,28 +82,48 @@
       <button id="search-btn">Search</button>
     </div>
 
-    <!-- Loading message -->
-    <div id="loading-message" style="display:none;">Searching jobs...</div>
-
-    <!-- Job list -->
-    <div id="job-list">
-      <h3>🌐 Remote Jobs</h3>
-      <div id="remote-jobs"></div>
-      <h3>📍 Local Jobs</h3>
-      <div id="local-jobs"></div>
+    <!-- Search history -->
+    <div id="search-history">
+      <strong>Recent searches:</strong>
+      <ul id="history-list"></ul>
     </div>
+
+    <!-- Country selector -->
+    <div id="country-select-container">
+      <label for="country-select">Choose a country:</label>
+      <select id="country-select">
+        <option value="us">United States</option>
+        <option value="gb">United Kingdom</option>
+        <option value="ca">Canada</option>
+        <option value="de">Germany</option>
+        <option value="fr">France</option>
+        <option value="au">Australia</option>
+        <option value="in">India</option>
+        <option value="nl">Netherlands</option>
+        <option value="sg">Singapore</option>
+        <option value="br">Brazil</option>
+        <option value="za">South Africa</option>
+      </select>
+    </div>
+
+    <!-- Remote jobs -->
+    <h3>Remote Jobs</h3>
+    <div id="remote-jobs"></div>
+
+    <!-- Local jobs -->
+    <h3>Local Jobs</h3>
+    <div id="local-jobs"></div>
 
     <!-- Saved jobs -->
-    <div id="saved-jobs-section">
-      <h3>💾 Saved Jobs (<span id="saved-jobs-counter">0/4 this month</span>)</h3>
-      <div id="saved-jobs-list"></div>
-    </div>
+    <h3>Saved Jobs</h3>
+    <div id="saved-jobs"></div>
+    <div id="saved-jobs-counter">0/4 this month</div>
   </div>
 
-  <!-- Job Modal -->
+  <!-- Modal for job details -->
   <div id="job-modal" class="modal">
     <div class="modal-content">
-      <span class="close-btn">&times;</span>
+      <span class="close">&times;</span>
       <div id="modal-body"></div>
     </div>
   </div>
@@ -171,6 +131,9 @@
   <script src="popup.js"></script>
 </body>
 </html>
+
+
+
 
 
 
