@@ -269,8 +269,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       loadingLocal = true;
       updateLoadingMessage();
+
+      // ✅ Updated Adzuna API call with what + adgroup for search terms
       const response = await fetch(
-        `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`
+        `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}&content-type=application/json`
       );
       if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
       const data = await response.json();
@@ -358,11 +360,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- ADZUNA CONFIG ---
-const ADZUNA_APP_ID = "your_adzuna_app_id";
-const ADZUNA_APP_KEY = "your_adzuna_app_key";
-// Replace with your actual Adzuna app ID and key
+const ADZUNA_APP_ID = "b39ca9ec";   // your real Adzuna App ID
+const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1"; // your real App Key
+// --- END ADZUNA CONFIG ---
 
-// --- IGNORE ---
+
 
 
 

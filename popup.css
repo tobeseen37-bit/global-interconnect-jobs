@@ -1,80 +1,49 @@
 body {
   font-family: Arial, sans-serif;
+  width: 380px;
   padding: 10px;
-  width: 400px; /* Base width */
-  max-width: 100%; /* Prevent overflowing the screen */
-  box-sizing: border-box;
 }
 h1, h2, h3 {
   color: #333;
 }
 button {
-  background: #0077ff;
+  padding: 8px 16px;
+  margin: 6px 0;
+  background-color: #007bff;
   color: white;
   border: none;
-  padding: 8px 12px;
+  border-radius: 5px;
   cursor: pointer;
-  border-radius: 4px;
 }
 button:hover {
-  background: #005fcc;
+  background-color: #005fcc;
+}
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
-/* --- Jobs Container (side by side) --- */
-#jobs-container {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  flex-wrap: wrap; /* Allows stacking on small screens */
-}
-
-.job-column {
-  flex: 1 1 180px; /* Flexible, min width 180px */
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  padding: 5px;
-  border-radius: 6px;
-  background: #f9f9f9;
-  min-width: 180px; /* Prevent column from being too narrow */
-}
-
-/* Job Card */
+/* Job list + saved jobs */
 .job {
-  border-bottom: 1px solid #ccc;
-  padding: 6px;
-  margin-bottom: 5px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 5px 0;
   cursor: pointer;
 }
 .job:hover {
-  background: #eee;
+  background: #f7f7f7;
 }
-
-/* Badges */
-.badge {
-  display: inline-block;
-  padding: 2px 6px;
-  margin-left: 6px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: bold;
-  color: #fff;
+.saved-job {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
 }
-.badge-new { background-color: #28a745; box-shadow: 0 0 6px 2px rgba(40, 167, 69, 0.7);}
-.badge-warning { background-color: #ffc107; color: #000;}
-.badge-info { background-color: #17a2b8;}
-.badge-success { background-color: #28a745;}
-.badge-danger { background-color: #dc3545;}
-.badge-remote { background-color: #007bff;}
-.badge-local { background-color: #6c757d;}
-
-/* Saved Jobs */
-#saved-jobs-section { margin-top: 15px; border-top: 2px solid #ddd; padding-top: 10px; text-align: left; }
-.saved-job { padding: 6px 0; border-bottom: 1px solid #eee; }
-.delete-btn { margin-left: 8px; color: red; cursor: pointer; font-size: 12px; }
-
-/* Loading */
-#loading-message { margin: 10px 0; font-style: italic; color: gray; }
+.delete-btn {
+  margin-left: 8px;
+  color: red;
+  cursor: pointer;
+  font-size: 12px;
+}
 
 /* Modal */
 .modal {
@@ -92,18 +61,86 @@ button:hover {
   padding: 15px;
   border-radius: 8px;
   width: 90%;
-  max-width: 600px; /* Restrict modal width */
   max-height: 80%;
   overflow-y: auto;
+}
+.modal-header {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+.close-btn {
+  float: right;
+  font-size: 18px;
+  cursor: pointer;
+  color: #333;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  margin-right: 6px;
+  font-size: 11px;
+  border-radius: 12px;
+  color: #fff;
+  background: #6c757d;
+}
+.badge-remote { background: #007bff; }
+.badge-local { background: #6c757d; }
+.badge-fulltime { background: #28a745; }
+.badge-parttime { background: #ffc107; color: #212529; }
+.badge-contract { background: #6f42c1; }
+.badge-new { background: #17a2b8; }
+
+/* Search history */
+#search-history {
+  margin-top: 10px;
   text-align: left;
 }
-.modal-header { font-size: 18px; margin-bottom: 10px; }
-.close-btn { float: right; font-size: 18px; cursor: pointer; color: #333; }
-
-/* Responsive tweaks */
-@media (max-width: 420px) {
-  #jobs-container {
-    flex-direction: column; /* Stack columns vertically on small screens */
-  }
+.history-item {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f1f1;
+  border-radius: 12px;
+  padding: 4px 8px;
+  margin: 3px;
+  font-size: 12px;
+  cursor: pointer;
 }
-/* --- IGNORE --- */
+.history-item .delete-term-btn {
+  margin-left: 6px;
+  font-weight: bold;
+  color: red;
+  cursor: pointer;
+}
+
+/* Jobs container side-by-side */
+#jobs-container {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+#remote-jobs-wrapper, #local-jobs-wrapper {
+  flex: 1;
+}
+#remote-jobs, #local-jobs {
+  height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  background: #fff;
+}
+#remote-jobs-wrapper h3, #local-jobs-wrapper h3 {
+  text-align: center;
+  margin-top: 0;
+}
+/* Responsive adjustments */
+@media (max-width: 800px) {
+  body {
+    width: 300px;
+  }
+  #jobs-container {
+    flex-direction: column;
+  }
+}   

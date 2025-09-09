@@ -6,7 +6,10 @@
   "action": {
     "default_popup": "popup.html"
   },
-  "permissions": ["storage", "tabs"],
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
   "host_permissions": [
     "https://remotive.com/*",
     "https://api.adzuna.com/*"
@@ -15,5 +18,7 @@
     "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
+
+
 
 
