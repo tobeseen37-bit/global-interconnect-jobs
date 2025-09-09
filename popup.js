@@ -14,10 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const viewSavedJobsBtn = document.getElementById("viewSavedJobsBtn");
   const backToJobsBtn = document.getElementById("backToJobsBtn");
   const savedJobsList = document.getElementById("saved-jobs-list");
+  const savedCounter = document.getElementById("saved-counter");
 
   // --- API CONFIG ---
   const ADZUNA_APP_ID = "b39ca9ec";
   const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
+  const MAX_FREE_SAVES = 4;
 
   // --- UTILS ---
   function showLoading(show) {
@@ -61,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cutoff.setDate(cutoff.getDate() - 30);
     savedJobs = savedJobs.filter(j => new Date(j.savedAt) > cutoff);
 
-    if (savedJobs.length >= 4) {
+    if (savedJobs.length >= MAX_FREE_SAVES) {
       alert("⚠️ Free limit reached: Only 4 jobs can be saved every 30 days. Upgrade for unlimited saves.");
       return;
     }
@@ -69,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
     savedJobs.push(job);
     await chrome.storage.local.set({ savedJobs });
     alert("✅ Job saved!");
+    updateSavedCounter(savedJobs.length);
   }
 
   async function loadSavedJobs() {
@@ -78,20 +81,25 @@ document.addEventListener("DOMContentLoaded", () => {
     savedJobsList.innerHTML = "";
     if (savedJobs.length === 0) {
       savedJobsList.innerHTML = "<p>No saved jobs yet.</p>";
-      return;
+    } else {
+      savedJobs.forEach(job => {
+        const jobDiv = document.createElement("div");
+        jobDiv.className = "job";
+        jobDiv.innerHTML = `
+          <strong>${job.title}</strong><br>
+          ${job.company} – ${job.location}<br>
+          <a href="${job.url}" target="_blank">Apply Now</a><br>
+          <small>Saved on: ${new Date(job.savedAt).toLocaleDateString()}</small>
+        `;
+        savedJobsList.appendChild(jobDiv);
+      });
     }
 
-    savedJobs.forEach(job => {
-      const jobDiv = document.createElement("div");
-      jobDiv.className = "job";
-      jobDiv.innerHTML = `
-        <strong>${job.title}</strong><br>
-        ${job.company} – ${job.location}<br>
-        <a href="${job.url}" target="_blank">Apply Now</a><br>
-        <small>Saved on: ${new Date(job.savedAt).toLocaleDateString()}</small>
-      `;
-      savedJobsList.appendChild(jobDiv);
-    });
+    updateSavedCounter(savedJobs.length);
+  }
+
+  function updateSavedCounter(count) {
+    savedCounter.textContent = `Saved Jobs: ${count}/${MAX_FREE_SAVES} this month`;
   }
 
   // --- FETCH REMOTE JOBS ---
@@ -166,7 +174,6 @@ document.addEventListener("DOMContentLoaded", () => {
     jobBoard.style.display = "block";
   });
 });
-
 
 
 
