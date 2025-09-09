@@ -21,6 +21,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalBody = document.getElementById("modal-body");
   const closeBtn = document.querySelector(".close-btn");
 
+  // --- New Upgrade Modal ---
+  const upgradeModal = document.createElement("div");
+  upgradeModal.className = "modal";
+  upgradeModal.style.display = "none";
+  upgradeModal.innerHTML = `
+    <div class="modal-content">
+      <span class="close-btn" id="upgrade-close">&times;</span>
+      <div id="upgrade-body">
+        <h3>⚠️ Upgrade Required</h3>
+        <p>You have reached your free limit. Upgrade to unlock unlimited saves and searches!</p>
+        <button id="upgrade-now-btn">Upgrade Now</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(upgradeModal);
+  const upgradeCloseBtn = document.getElementById("upgrade-close");
+  const upgradeNowBtn = document.getElementById("upgrade-now-btn");
+
+  upgradeCloseBtn.addEventListener("click", () => {
+    upgradeModal.style.display = "none";
+  });
+  upgradeNowBtn.addEventListener("click", () => {
+    window.open("#", "_blank"); // Replace # with your upgrade/pricing page URL
+    upgradeModal.style.display = "none";
+  });
+  window.addEventListener("click", (e) => {
+    if (e.target === upgradeModal) upgradeModal.style.display = "none";
+  });
+
+  function showUpgradeModal() {
+    upgradeModal.style.display = "flex";
+  }
+
   // Search history
   const searchHistoryDiv = document.getElementById("search-history");
 
@@ -52,7 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     savedJobsCounter.textContent = `${jobs.length}/4 this month`;
 
-    // Attach delete handlers
     document.querySelectorAll(".delete-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const idx = e.target.dataset.index;
@@ -67,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function trySaveJob(job) {
     const jobs = getSavedJobs();
     if (jobs.length >= 4) {
-      alert("⚠️ Free users can only save 4 jobs per month. Upgrade for unlimited saves!");
+      showUpgradeModal();
       return;
     }
     jobs.push(job);
@@ -84,18 +116,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!term) return;
     let history = getSearchHistory();
 
-    // Avoid duplicates
-    history = history.filter(t => t.toLowerCase() !== term.toLowerCase());
-
-    // Free plan: limit to 3
-    if (history.length >= 3) {
-      alert("⚠️ Free users can only save 3 recent searches. Upgrade for unlimited search history!");
+    if (!history.includes(term) && history.length >= 3) {
+      showUpgradeModal();
       return;
     }
 
-    // Add new term at the top
+    history = history.filter(t => t.toLowerCase() !== term.toLowerCase());
     history.unshift(term);
-
     localStorage.setItem("searchHistory", JSON.stringify(history));
     updateSearchHistoryUI();
   }
@@ -103,26 +130,43 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateSearchHistoryUI() {
     const history = getSearchHistory();
     searchHistoryDiv.innerHTML = "<strong>Recent Searches:</strong><div id='history-list'></div>";
-
     const historyListDiv = document.getElementById("history-list");
 
     if (history.length === 0) {
       historyListDiv.innerHTML = "<p>No recent searches.</p>";
     } else {
-      history.forEach(term => {
+      history.forEach((term, index) => {
+        const termWrapper = document.createElement("div");
+        termWrapper.style.display = "inline-block";
+        termWrapper.style.margin = "3px";
+
         const termBtn = document.createElement("button");
         termBtn.className = "history-btn";
         termBtn.textContent = term;
+        termBtn.style.marginRight = "5px";
         termBtn.addEventListener("click", () => {
           jobSearchInput.value = term;
           fetchRemoteJobs(term);
           fetchLocalJobs(countrySelect ? countrySelect.value : "us", term);
         });
-        historyListDiv.appendChild(termBtn);
+
+        const deleteBtn = document.createElement("span");
+        deleteBtn.textContent = "❌";
+        deleteBtn.style.cursor = "pointer";
+        deleteBtn.style.fontSize = "12px";
+        deleteBtn.addEventListener("click", () => {
+          let updatedHistory = getSearchHistory();
+          updatedHistory.splice(index, 1);
+          localStorage.setItem("searchHistory", JSON.stringify(updatedHistory));
+          updateSearchHistoryUI();
+        });
+
+        termWrapper.appendChild(termBtn);
+        termWrapper.appendChild(deleteBtn);
+        historyListDiv.appendChild(termWrapper);
       });
     }
 
-    // Add Clear History button
     const clearHistoryBtn = document.createElement("button");
     clearHistoryBtn.textContent = "Clear History";
     clearHistoryBtn.style.marginTop = "5px";
@@ -145,7 +189,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     jobModal.style.display = "flex";
 
-    // Save handler inside modal
     const saveBtn = document.getElementById("modal-save-btn");
     saveBtn.addEventListener("click", () => {
       trySaveJob(job);
@@ -163,7 +206,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Badge Helper ---
   function getJobBadge(dateStr) {
     if (!dateStr) return "";
     const postedDate = new Date(dateStr);
@@ -176,13 +218,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return "";
   }
 
-  // --- FETCH REMOTE JOBS ---
   async function fetchRemoteJobs(search = "") {
     try {
       loadingMessage.style.display = "block";
       const response = await fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`);
       const data = await response.json();
-
       remoteJobsDiv.innerHTML = "";
 
       const sortedJobs = data.jobs.slice(0, 10).sort(job => {
@@ -220,7 +260,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- FETCH LOCAL JOBS ---
   async function fetchLocalJobs(country = "us", search = "") {
     try {
       loadingMessage.style.display = "block";
@@ -229,7 +268,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
       const data = await response.json();
-
       localJobsDiv.innerHTML = "";
 
       const sortedJobs = data.results.sort(job => {
@@ -267,7 +305,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- GET STARTED BUTTON ---
   if (viewJobsBtn) {
     viewJobsBtn.addEventListener("click", () => {
       console.log("Get Started button clicked 🎉");
@@ -281,14 +318,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- COUNTRY DROPDOWN ---
   if (countrySelect) {
     countrySelect.addEventListener("change", () => {
       fetchLocalJobs(countrySelect.value, jobSearchInput.value);
     });
   }
 
-  // --- SEARCH BUTTON ---
   if (searchBtn) {
     searchBtn.addEventListener("click", () => {
       const searchTerm = jobSearchInput.value;
@@ -298,6 +333,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+
 
 
 

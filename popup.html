@@ -107,7 +107,7 @@
       color: #333;
     }
 
-    /* ====== BADGE STYLES ADDED (new feature) ====== */
+    /* ====== BADGE STYLES ====== */
     .job-badges {
       margin-top: 6px;
       margin-bottom: 4px;
@@ -119,17 +119,15 @@
       font-size: 11px;
       border-radius: 12px;
       color: #fff;
-      background: #6c757d; /* default gray */
+      background: #6c757d;
       line-height: 1;
     }
-    /* color-coded variants */
-    .badge-remote { background: #007bff; }    /* blue */
-    .badge-local  { background: #6c757d; }    /* gray */
-    .badge-fulltime { background: #28a745; }  /* green */
-    .badge-parttime { background: #ffc107; color: #212529; } /* yellow/orange */
-    .badge-contract { background: #6f42c1; }  /* purple */
-    .badge-new { background: #17a2b8; }       /* teal - for future use */
-    /* ====== END BADGE STYLES ====== */
+    .badge-remote { background: #007bff; }
+    .badge-local  { background: #6c757d; }
+    .badge-fulltime { background: #28a745; }
+    .badge-parttime { background: #ffc107; color: #212529; }
+    .badge-contract { background: #6f42c1; }
+    .badge-new { background: #17a2b8; }
 
     /* Search history */
     #search-history {
@@ -137,7 +135,8 @@
       text-align: left;
     }
     .history-item {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
       background: #f1f1f1;
       border-radius: 12px;
       padding: 4px 8px;
@@ -146,6 +145,29 @@
       cursor: pointer;
     }
     .history-item:hover {
+      background: #e0e0e0;
+    }
+    .history-item .delete-term-btn {
+      margin-left: 6px;
+      font-weight: bold;
+      color: red;
+      cursor: pointer;
+    }
+
+    /* Clear History button style */
+    #clear-history-btn {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f1f1;
+      border-radius: 12px;
+      padding: 2px 6px;
+      font-size: 12px;
+      margin: 3px;
+      cursor: pointer;
+      border: none;
+      color: #dc3545;
+    }
+    #clear-history-btn:hover {
       background: #e0e0e0;
     }
   </style>
@@ -184,12 +206,12 @@
       <button id="search-btn">Search</button>
     </div>
 
-   <div id="search-history">
-  <strong>Recent Searches:</strong>
-  <div id="history-list"></div>
-  <button id="clear-history-btn" style="margin-top: 5px; font-size: 12px;">Clear History</button>
-</div>
-
+    <!-- Search history -->
+    <div id="search-history">
+      <strong>Recent Searches:</strong>
+      <div id="history-list"></div>
+      <button id="clear-history-btn">Clear History</button>
+    </div>
 
     <!-- Loading message -->
     <div id="loading-message" style="display:none;">Searching jobs...</div>
@@ -220,6 +242,7 @@
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
