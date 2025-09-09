@@ -44,14 +44,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const jobDiv = document.createElement("div");
       jobDiv.className = "saved-job";
       jobDiv.innerHTML = `
-        <strong>${job.title}</strong> – ${job.company}
-        <span class="badge info">Saved</span><br>
+        <strong>${job.title}</strong> – ${job.company}<br>
         <a href="${job.url}" target="_blank">Apply Now</a>
         <span class="delete-btn" data-index="${index}">❌ Delete</span>
       `;
       savedJobsList.appendChild(jobDiv);
     });
-    savedJobsCounter.innerHTML = `<span class="badge info">${jobs.length}/4 this month</span>`;
+    savedJobsCounter.textContent = `${jobs.length}/4 this month`;
 
     // Attach delete handlers
     document.querySelectorAll(".delete-btn").forEach(btn => {
@@ -102,11 +101,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateSearchHistoryUI() {
     const history = getSearchHistory();
-    const historyList = document.getElementById("history-list");
-    historyList.innerHTML = "";
+    searchHistoryDiv.innerHTML = "";
 
     if (history.length === 0) {
-      historyList.innerHTML = "<p>No recent searches.</p>";
+      searchHistoryDiv.innerHTML = "<p>No recent searches.</p>";
       return;
     }
 
@@ -119,31 +117,14 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchRemoteJobs(term);
         fetchLocalJobs(countrySelect ? countrySelect.value : "us", term);
       });
-      historyList.appendChild(termBtn);
+      searchHistoryDiv.appendChild(termBtn);
     });
-  }
-
-  // --- Job Badge Logic ---
-  function getJobBadge(createdAt) {
-    if (!createdAt) return "";
-
-    const createdDate = new Date(createdAt);
-    const now = new Date();
-    const diffHours = (now - createdDate) / (1000 * 60 * 60);
-
-    if (diffHours <= 48) {
-      return `<span class="badge info">New</span>`;
-    }
-    if (diffHours > 720) { // ~30 days
-      return `<span class="badge danger">Expiring Soon</span>`;
-    }
-    return "";
   }
 
   // --- Modal Handling ---
   function openJobModal(job) {
     modalBody.innerHTML = `
-      <div class="modal-header">${job.title} <span class="badge warning">Details</span></div>
+      <div class="modal-header">${job.title}</div>
       <p><strong>${job.company}</strong> – ${job.location}</p>
       <p>${job.description || "No description available."}</p>
       <a href="${job.url}" target="_blank"><button>Apply Now</button></a>
@@ -169,6 +150,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // --- Badge Helper ---
+  function getJobBadge(dateStr) {
+    if (!dateStr) return "";
+    const postedDate = new Date(dateStr);
+    const now = new Date();
+    const diffHours = (now - postedDate) / (1000 * 60 * 60);
+
+    if (diffHours <= 48) {
+      return '<span class="badge new">New</span>';
+    } else if (diffHours > 48 && diffHours <= 168) { // 1 week
+      return '<span class="badge warning">Expiring Soon</span>';
+    }
+    return "";
+  }
+
   // --- FETCH REMOTE JOBS ---
   async function fetchRemoteJobs(search = "") {
     try {
@@ -177,7 +173,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
 
       remoteJobsDiv.innerHTML = "";
-      data.jobs.slice(0, 10).forEach(job => {
+
+      // Sort jobs: New first, then normal, then expiring soon
+      const sortedJobs = data.jobs.slice(0, 10).sort(job => {
+        const badge = getJobBadge(job.publication_date);
+        if (badge.includes("New")) return -1;
+        if (badge.includes("Expiring Soon")) return 1;
+        return 0;
+      });
+
+      sortedJobs.forEach(job => {
         const badge = getJobBadge(job.publication_date);
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
@@ -216,7 +221,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
 
       localJobsDiv.innerHTML = "";
-      data.results.forEach(job => {
+
+      const sortedJobs = data.results.sort(job => {
+        const badge = getJobBadge(job.created);
+        if (badge.includes("New")) return -1;
+        if (badge.includes("Expiring Soon")) return 1;
+        return 0;
+      });
+
+      sortedJobs.forEach(job => {
         const badge = getJobBadge(job.created);
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
@@ -275,6 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 
 
 
