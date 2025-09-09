@@ -52,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     savedJobsCounter.textContent = `${jobs.length}/4 this month`;
 
-    // Attach delete handlers
     document.querySelectorAll(".delete-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const idx = e.target.dataset.index;
@@ -83,51 +82,60 @@ document.addEventListener("DOMContentLoaded", () => {
   function saveSearchHistory(term) {
     if (!term) return;
     let history = getSearchHistory();
-
-    // Avoid duplicates
     history = history.filter(t => t.toLowerCase() !== term.toLowerCase());
-
-    // Add new term at the top
     history.unshift(term);
-
-    // Free plan: limit to 3
-    if (history.length > 3) {
-      history = history.slice(0, 3);
-    }
-
+    if (history.length > 3) history = history.slice(0, 3);
     localStorage.setItem("searchHistory", JSON.stringify(history));
     updateSearchHistoryUI();
   }
-  const clearHistoryBtn = document.getElementById("clear-history-btn");
-
-if (clearHistoryBtn) {
-  clearHistoryBtn.addEventListener("click", () => {
-    localStorage.removeItem("searchHistory");
-    updateSearchHistoryUI();
-  });
-}
-
 
   function updateSearchHistoryUI() {
     const history = getSearchHistory();
-    searchHistoryDiv.innerHTML = "";
+    searchHistoryDiv.innerHTML = "<strong>Recent Searches:</strong><div id='history-list'></div>";
+    const historyListDiv = document.getElementById("history-list");
 
     if (history.length === 0) {
-      searchHistoryDiv.innerHTML = "<p>No recent searches.</p>";
-      return;
+      historyListDiv.innerHTML = "<p>No recent searches.</p>";
+    } else {
+      history.forEach((term, index) => {
+        const termContainer = document.createElement("div");
+        termContainer.className = "history-item-container";
+
+        const termBtn = document.createElement("button");
+        termBtn.className = "history-item";
+        termBtn.textContent = term;
+        termBtn.addEventListener("click", () => {
+          jobSearchInput.value = term;
+          fetchRemoteJobs(term);
+          fetchLocalJobs(countrySelect ? countrySelect.value : "us", term);
+        });
+
+        const deleteBtn = document.createElement("span");
+        deleteBtn.textContent = "❌";
+        deleteBtn.style.marginLeft = "5px";
+        deleteBtn.style.cursor = "pointer";
+        deleteBtn.addEventListener("click", () => {
+          const updatedHistory = getSearchHistory();
+          updatedHistory.splice(index, 1);
+          localStorage.setItem("searchHistory", JSON.stringify(updatedHistory));
+          updateSearchHistoryUI();
+        });
+
+        termContainer.appendChild(termBtn);
+        termContainer.appendChild(deleteBtn);
+        historyListDiv.appendChild(termContainer);
+      });
     }
 
-    history.forEach(term => {
-      const termBtn = document.createElement("button");
-      termBtn.className = "history-btn";
-      termBtn.textContent = term;
-      termBtn.addEventListener("click", () => {
-        jobSearchInput.value = term;
-        fetchRemoteJobs(term);
-        fetchLocalJobs(countrySelect ? countrySelect.value : "us", term);
-      });
-      searchHistoryDiv.appendChild(termBtn);
+    const clearHistoryBtn = document.createElement("button");
+    clearHistoryBtn.textContent = "Clear History";
+    clearHistoryBtn.style.marginTop = "5px";
+    clearHistoryBtn.style.fontSize = "12px";
+    clearHistoryBtn.addEventListener("click", () => {
+      localStorage.removeItem("searchHistory");
+      updateSearchHistoryUI();
     });
+    searchHistoryDiv.appendChild(clearHistoryBtn);
   }
 
   // --- Modal Handling ---
@@ -141,7 +149,6 @@ if (clearHistoryBtn) {
     `;
     jobModal.style.display = "flex";
 
-    // Save handler inside modal
     const saveBtn = document.getElementById("modal-save-btn");
     saveBtn.addEventListener("click", () => {
       trySaveJob(job);
@@ -153,10 +160,9 @@ if (clearHistoryBtn) {
       jobModal.style.display = "none";
     });
   }
+
   window.addEventListener("click", (e) => {
-    if (e.target === jobModal) {
-      jobModal.style.display = "none";
-    }
+    if (e.target === jobModal) jobModal.style.display = "none";
   });
 
   // --- Badge Helper ---
@@ -178,7 +184,6 @@ if (clearHistoryBtn) {
       loadingMessage.style.display = "block";
       const response = await fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`);
       const data = await response.json();
-
       remoteJobsDiv.innerHTML = "";
 
       const sortedJobs = data.jobs.slice(0, 10).sort(job => {
@@ -225,7 +230,6 @@ if (clearHistoryBtn) {
       );
       if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
       const data = await response.json();
-
       localJobsDiv.innerHTML = "";
 
       const sortedJobs = data.results.sort(job => {
@@ -269,7 +273,6 @@ if (clearHistoryBtn) {
       console.log("Get Started button clicked 🎉");
       if (welcomeScreen) welcomeScreen.style.display = "none";
       if (jobBoard) jobBoard.style.display = "block";
-
       fetchRemoteJobs();
       fetchLocalJobs(countrySelect ? countrySelect.value : "us");
       updateSavedJobsUI();
@@ -294,6 +297,7 @@ if (clearHistoryBtn) {
     });
   }
 });
+
 
 
 
