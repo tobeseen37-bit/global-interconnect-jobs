@@ -98,6 +98,15 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("searchHistory", JSON.stringify(history));
     updateSearchHistoryUI();
   }
+  const clearHistoryBtn = document.getElementById("clear-history-btn");
+
+if (clearHistoryBtn) {
+  clearHistoryBtn.addEventListener("click", () => {
+    localStorage.removeItem("searchHistory");
+    updateSearchHistoryUI();
+  });
+}
+
 
   function updateSearchHistoryUI() {
     const history = getSearchHistory();
