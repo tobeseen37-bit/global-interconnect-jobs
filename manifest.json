@@ -11,7 +11,7 @@
     "tabs"
   ],
   "host_permissions": [
-    "https://remotive.com/*",
+    "https://remotive.io/*",
     "https://api.adzuna.com/*"
   ],
   "content_security_policy": {

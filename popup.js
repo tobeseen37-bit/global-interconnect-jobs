@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const countrySelect = document.getElementById("country-select");
   const jobSearchInput = document.getElementById("job-search");
+  const cityInput = document.getElementById("city-input"); // ✅ city/state filter
   const searchBtn = document.getElementById("search-btn");
   const loadingMessage = document.getElementById("loading-message");
   const categorySelect = document.getElementById("category-select");
@@ -289,16 +290,32 @@ document.addEventListener("DOMContentLoaded", () => {
         query += " visa sponsorship OR work visa OR relocation assistance";
       }
 
-      let url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(query)}&content-type=application/json`;
+      let url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(query)}`;
+
+      // ✅ include city/state filter
+      const city = cityInput ? cityInput.value.trim() : "";
+      if (city) {
+        url += `&where=${encodeURIComponent(city)}`;
+      }
 
       if (category.startsWith("adzuna:")) {
         url += `&category=${encodeURIComponent(category.replace("adzuna:", ""))}`;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "application/json"
+        }
+      });
+
       if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
       const data = await response.json();
       localJobsDiv.innerHTML = "";
+
+      if (!data.results || data.results.length === 0) {
+        localJobsDiv.innerHTML = "<p>No local jobs found.</p>";
+        return;
+      }
 
       data.results.forEach(job => {
         const badge = getJobBadge(job.created);
@@ -374,11 +391,21 @@ document.addEventListener("DOMContentLoaded", () => {
   if (visaCheckbox) {
     visaCheckbox.addEventListener("change", runSearch);
   }
+
+  if (cityInput) {
+    cityInput.addEventListener("input", () => {
+      // auto-run search when user types a city
+      if (cityInput.value.trim().length > 2) {
+        runSearch();
+      }
+    });
+  }
 });
 
 // --- ADZUNA CONFIG ---
 const ADZUNA_APP_ID = "b39ca9ec";
 const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
+
 
 // --- IGNORE ---
 
