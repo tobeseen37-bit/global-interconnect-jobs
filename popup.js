@@ -286,14 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const visaChecked = visaCheckbox && visaCheckbox.checked;
       const visaUnsupportedCountries = ["se", "no"];
 
-      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
-        targetDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country.</p>";
-        return;
-      }
-
       let url = "";
       if (type === "remote") {
-        // --- Worldwide remote jobs ---
         url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
         if (category && category.startsWith("remotive:")) {
           url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
@@ -311,6 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch(url, type === "local" ? { headers: { Accept: "application/json" } } : {});
       let data;
       const contentType = response.headers.get("content-type") || "";
+
       if (contentType.includes("application/json")) {
         data = await response.json();
       } else {
@@ -333,40 +328,50 @@ document.addEventListener("DOMContentLoaded", () => {
         searchRegex = new RegExp(keywords.join("|"), "i");
       }
 
+      // --- Visa filter logic for Norway/Sweden ---
+      let visaWarning = "";
+      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
+        visaWarning = "<p>⚠️ Visa filtering is not supported for this country. Showing all jobs instead.</p>";
+        // Do NOT return here; just skip the visa filter for these countries
+      }
+
       jobs = jobs.filter(job => {
         const title = job.title || "";
         const desc = job.description || "";
         const location = type === "remote" ? job.candidate_required_location : (job.location?.display_name || "");
         const keywordMatch = !searchRegex || searchRegex.test(title) || searchRegex.test(desc) || searchRegex.test(location);
-        const visaMatch = !visaChecked || VISA_REGEX.test(desc);
+        // Only apply visa filter if not Norway/Sweden
+        const visaMatch = !visaChecked || visaUnsupportedCountries.includes(country) || VISA_REGEX.test(desc);
         return keywordMatch && visaMatch;
       });
 
       if (!jobs || jobs.length === 0) {
-        targetDiv.innerHTML = `<p>No ${type} jobs found.</p>`;
+        targetDiv.innerHTML = visaWarning + `<p>No ${type} jobs found.</p>`;
         return;
       }
 
+      if (visaWarning) targetDiv.innerHTML = visaWarning;
+
       jobs.slice(0, 10).forEach((job) => {
         const badge = getJobBadge(job.publication_date || job.created);
-        const remoteLabel = type === "remote" && job.candidate_required_location.toLowerCase().includes("usa") ? "🌎 USA Remote" : "🌍 Worldwide Remote";
+        const remoteLabel = type === "remote" && job.candidate_required_location && job.candidate_required_location.toLowerCase().includes("usa") ? "🌎 USA Remote" : "🌍 Worldwide Remote";
 
         const jobDiv = document.createElement("div");
-        jobDiv.className = "job";
+        jobDiv.className = "job-card";
         jobDiv.innerHTML = `
-          <strong>${job.title}</strong> 
-          <span class="badge badge-${type}">${type === "remote" ? remoteLabel : "Local"}</span> ${badge}<br>
-          ${type === "remote" ? `${job.company_name} – ${job.candidate_required_location}` : `${job.company.display_name} – ${job.location.display_name}`}
+          <div>
+            <strong>${job.title}</strong> – ${job.company || job.company_name || ""} ${badge}
+          </div>
+          <div>${type === "remote" ? (job.candidate_required_location || "") : (job.location?.display_name || "")}</div>
+          <button class="view-btn">View</button>
         `;
-        jobDiv.addEventListener("click", () => {
-          openJobModal({
-            title: job.title,
-            company: type === "remote" ? job.company_name : job.company.display_name,
-            location: type === "remote" ? job.candidate_required_location : job.location.display_name,
-            description: job.description,
-            url: type === "remote" ? job.url : job.application_uri || job.redirect_url
-          });
-        });
+        jobDiv.querySelector(".view-btn").addEventListener("click", () => openJobModal({
+          title: job.title,
+          company: job.company || job.company_name || "",
+          location: type === "remote" ? (job.candidate_required_location || "") : (job.location?.display_name || ""),
+          description: job.description,
+          url: job.url || job.redirect_url
+        }));
         targetDiv.appendChild(jobDiv);
       });
     } catch (error) {
@@ -411,7 +416,4 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchJobs({ type: "local", search: searchTerm, category: selectedCategory, country: selectedCountry, targetDiv: localJobsDiv });
   }
 });
-// --- END OF FILE ---
-
-
-      
+// --- END OF POPUP.JS ---
