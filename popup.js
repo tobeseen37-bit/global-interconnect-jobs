@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  // --- Generic Fetch Jobs ---
+  // --- Generic Fetch Jobs (Updated for SE/NO) ---
   async function fetchJobs({ type, search = "", category = "", country = "us", targetDiv }) {
     try {
       if (!targetDiv) return;
@@ -286,11 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const visaChecked = visaCheckbox && visaCheckbox.checked;
       const visaUnsupportedCountries = ["se", "no"];
 
-      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
-        targetDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country.</p>";
-        return;
-      }
-
+      // --- URL setup ---
       let url = "";
       if (type === "remote") {
         url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
@@ -298,6 +294,13 @@ document.addEventListener("DOMContentLoaded", () => {
           url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
         }
       } else {
+        // Adzuna local jobs
+        const supportedCountries = ["us","gb","ca","de","fr"]; // adjust list based on Adzuna support
+        if (!supportedCountries.includes(country)) {
+          targetDiv.innerHTML = `<p>Local jobs are not available for this country.</p>`;
+          return;
+        }
+
         url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`;
         if (cityInput && cityInput.value.trim()) {
           url += `&where=${encodeURIComponent(cityInput.value.trim())}`;
@@ -309,20 +312,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const response = await fetch(url, type === "local" ? { headers: { Accept: "application/json" } } : {});
       
-      // --- Handle non-JSON responses safely ---
       let data;
       const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
         data = await response.json();
       } else {
         const text = await response.text();
-        console.error("Adzuna API returned non-JSON response:", text);
+        console.error("API returned non-JSON response:", text);
         targetDiv.innerHTML = `<p>⚠️ Failed to load ${type} jobs: Unexpected response from server.</p>`;
         return;
       }
 
       targetDiv.innerHTML = "";
-      let jobs = type === "remote" ? data.jobs : data.results || [];
+      let jobs = type === "remote" ? data.jobs || [] : data.results || [];
+
+      // --- Remote country filter for SE/NO ---
+      if (type === "remote" && ["se","no"].includes(country)) {
+        const countryName = country === "se" ? "Sweden" : "Norway";
+        jobs = jobs.filter(job => (job.candidate_required_location || "").toLowerCase().includes(countryName.toLowerCase()));
+      }
 
       // --- Enhanced keyword filtering ---
       let searchRegex = null;
@@ -406,11 +414,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectedCountry = countrySelect ? countrySelect.value : "us";
     const selectedCategory = categorySelect ? categorySelect.value : "";
     saveSearchHistory(searchTerm);
-    fetchJobs({ type: "remote", search: searchTerm, category: selectedCategory, targetDiv: remoteJobsDiv });
+    fetchJobs({ type: "remote", search: searchTerm, category: selectedCategory, country: selectedCountry, targetDiv: remoteJobsDiv });
     fetchJobs({ type: "local", search: searchTerm, category: selectedCategory, country: selectedCountry, targetDiv: localJobsDiv });
   }
 });
 // --- END OF FILE ---
+// --- IGNORE ---
 
 
       
