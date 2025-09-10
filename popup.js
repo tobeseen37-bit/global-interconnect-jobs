@@ -285,7 +285,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const visaChecked = visaCheckbox && visaCheckbox.checked;
       const visaUnsupportedCountries = ["se", "no"];
-      const applyVisaFilter = visaChecked && !visaUnsupportedCountries.includes(country);
+
+      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
+        targetDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country.</p>";
+        return;
+      }
 
       let url = "";
       if (type === "remote") {
@@ -316,18 +320,22 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       targetDiv.innerHTML = "";
-      let jobs = type === "remote" ? data.jobs || [] : data.results || [];
+      let jobs = type === "remote" ? data.jobs : data.results || [];
 
-      // --- Remote country filter for all selected countries ---
+      // --- Remote country filtering fix ---
       if (type === "remote" && country) {
         const countryNameMap = { se: "Sweden", no: "Norway", es: "Spain", it: "Italy", us: "United States" };
         const countryName = countryNameMap[country.toLowerCase()] || "";
-        if (countryName) {
-          jobs = jobs.filter(job => (job.candidate_required_location || "").toLowerCase().includes(countryName.toLowerCase()));
-        }
+        jobs = jobs.filter(job => {
+          const loc = (job.candidate_required_location || "").toLowerCase();
+          if (!countryName) return true;
+          if (loc.includes("worldwide")) return true;
+          if (country.toLowerCase() === "us") return loc.includes("us") || loc.includes("united states") || loc.includes("usa");
+          return loc.includes(countryName.toLowerCase());
+        });
       }
 
-      // --- Enhanced keyword & visa filtering ---
+      // --- Enhanced keyword filtering ---
       let searchRegex = null;
       if (search.trim()) {
         const keywords = search
@@ -342,7 +350,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const desc = job.description || "";
         const location = type === "remote" ? job.candidate_required_location : (job.location?.display_name || "");
         const keywordMatch = !searchRegex || searchRegex.test(title) || searchRegex.test(desc) || searchRegex.test(location);
-        const visaMatch = !applyVisaFilter || VISA_REGEX.test(desc);
+        const visaMatch = !visaChecked || VISA_REGEX.test(desc);
         return keywordMatch && visaMatch;
       });
 
@@ -414,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 // --- END OF FILE ---
-// --- IGNORE ---
+
 
 
       
