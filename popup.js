@@ -293,6 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let url = "";
       if (type === "remote") {
+        // --- Worldwide remote jobs ---
         url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
         if (category && category.startsWith("remotive:")) {
           url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
@@ -320,20 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       targetDiv.innerHTML = "";
-      let jobs = type === "remote" ? data.jobs : data.results || [];
-
-      // --- Remote country filtering fix ---
-      if (type === "remote" && country) {
-        const countryNameMap = { se: "Sweden", no: "Norway", es: "Spain", it: "Italy", us: "United States" };
-        const countryName = countryNameMap[country.toLowerCase()] || "";
-        jobs = jobs.filter(job => {
-          const loc = (job.candidate_required_location || "").toLowerCase();
-          if (!countryName) return true;
-          if (loc.includes("worldwide")) return true;
-          if (country.toLowerCase() === "us") return loc.includes("us") || loc.includes("united states") || loc.includes("usa");
-          return loc.includes(countryName.toLowerCase());
-        });
-      }
+      let jobs = type === "remote" ? data.jobs || [] : data.results || [];
 
       // --- Enhanced keyword filtering ---
       let searchRegex = null;
@@ -361,11 +349,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       jobs.slice(0, 10).forEach((job) => {
         const badge = getJobBadge(job.publication_date || job.created);
+        const remoteLabel = type === "remote" && job.candidate_required_location.toLowerCase().includes("usa") ? "🌎 USA Remote" : "🌍 Worldwide Remote";
+
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
         jobDiv.innerHTML = `
           <strong>${job.title}</strong> 
-          <span class="badge badge-${type}">${type === "remote" ? "Remote" : "Local"}</span> ${badge}<br>
+          <span class="badge badge-${type}">${type === "remote" ? remoteLabel : "Local"}</span> ${badge}<br>
           ${type === "remote" ? `${job.company_name} – ${job.candidate_required_location}` : `${job.company.display_name} – ${job.location.display_name}`}
         `;
         jobDiv.addEventListener("click", () => {
@@ -417,12 +407,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectedCountry = countrySelect ? countrySelect.value : "us";
     const selectedCategory = categorySelect ? categorySelect.value : "";
     saveSearchHistory(searchTerm);
-    fetchJobs({ type: "remote", search: searchTerm, category: selectedCategory, country: selectedCountry, targetDiv: remoteJobsDiv });
+    fetchJobs({ type: "remote", search: searchTerm, category: selectedCategory, targetDiv: remoteJobsDiv });
     fetchJobs({ type: "local", search: searchTerm, category: selectedCategory, country: selectedCountry, targetDiv: localJobsDiv });
   }
 });
 // --- END OF FILE ---
-
 
 
       
