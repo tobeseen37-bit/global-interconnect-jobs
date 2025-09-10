@@ -286,6 +286,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const visaChecked = visaCheckbox && visaCheckbox.checked;
       const visaUnsupportedCountries = ["se", "no"];
 
+      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
+        targetDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country.</p>";
+        return;
+      }
+
       let url = "";
       if (type === "remote") {
         url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
@@ -303,21 +308,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const response = await fetch(url, type === "local" ? { headers: { Accept: "application/json" } } : {});
-      const data = await response.json();
-      targetDiv.innerHTML = "";
-
-      // --- Safely handle missing results ---
-      let jobs = type === "remote" ? data.jobs || [] : data.results || [];
-
-      // --- Handle visa unsupported countries gracefully ---
-      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
-        if (jobs.length > 0) {
-          targetDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country, showing all jobs.</p>";
-        } else {
-          targetDiv.innerHTML = "<p>No local jobs found for this country.</p>";
-          return;
-        }
+      
+      // --- Handle non-JSON responses safely ---
+      let data;
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error("Adzuna API returned non-JSON response:", text);
+        targetDiv.innerHTML = `<p>⚠️ Failed to load ${type} jobs: Unexpected response from server.</p>`;
+        return;
       }
+
+      targetDiv.innerHTML = "";
+      let jobs = type === "remote" ? data.jobs : data.results || [];
 
       // --- Enhanced keyword filtering ---
       let searchRegex = null;
@@ -406,5 +411,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 // --- END OF FILE ---
+
 
       
