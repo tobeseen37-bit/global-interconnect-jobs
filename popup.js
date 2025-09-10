@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const welcomeScreen = document.getElementById("welcome-screen");
   const jobBoard = document.getElementById("job-board");
 
-  // Create a container for side-by-side job columns
   let jobsContainer = document.getElementById("jobs-container");
   if (!jobsContainer) {
     jobsContainer = document.createElement("div");
@@ -15,44 +14,26 @@ document.addEventListener("DOMContentLoaded", () => {
     jobBoard.insertBefore(jobsContainer, document.getElementById("saved-jobs-section"));
   }
 
-  const remoteJobsDiv = document.getElementById("remote-jobs") || (() => {
-    const div = document.createElement("div");
-    div.id = "remote-jobs";
-    div.className = "job-column";
-    div.style.flex = "1";
-    jobsContainer.appendChild(div);
-    return div;
-  })();
-
-  const localJobsDiv = document.getElementById("local-jobs") || (() => {
-    const div = document.createElement("div");
-    div.id = "local-jobs";
-    div.className = "job-column";
-    div.style.flex = "1";
-    jobsContainer.appendChild(div);
-    return div;
-  })();
+  const remoteJobsDiv = document.getElementById("remote-jobs");
+  const localJobsDiv = document.getElementById("local-jobs");
 
   const countrySelect = document.getElementById("country-select");
   const jobSearchInput = document.getElementById("job-search");
   const searchBtn = document.getElementById("search-btn");
   const loadingMessage = document.getElementById("loading-message");
-  const categorySelect = document.getElementById("category-select"); // ✅ Single unified dropdown
+  const categorySelect = document.getElementById("category-select");
+  const visaCheckbox = document.getElementById("visa-checkbox"); // ✅ Visa Sponsorship checkbox
 
-  // Flags for loading
   let loadingRemote = false;
   let loadingLocal = false;
 
-  // Saved jobs
   const savedJobsList = document.getElementById("saved-jobs-list");
   const savedJobsCounter = document.getElementById("saved-jobs-counter");
 
-  // Modal
   const jobModal = document.getElementById("job-modal");
   const modalBody = document.getElementById("modal-body");
   const closeBtn = document.querySelector(".close-btn");
 
-  // Upgrade modal
   const upgradeModal = document.createElement("div");
   upgradeModal.className = "modal";
   upgradeModal.style.display = "none";
@@ -155,8 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
         termBtn.style.marginRight = "5px";
         termBtn.addEventListener("click", () => {
           jobSearchInput.value = term;
-          fetchRemoteJobs(term, categorySelect ? categorySelect.value : "");
-          fetchLocalJobs(countrySelect ? countrySelect.value : "us", term, categorySelect ? categorySelect.value : "");
+          runSearch();
         });
 
         const deleteBtn = document.createElement("span");
@@ -205,7 +185,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (closeBtn) closeBtn.addEventListener("click", () => jobModal.style.display = "none");
   window.addEventListener("click", (e) => { if (e.target === jobModal) jobModal.style.display = "none"; });
 
-  // --- Job Badge ---
   function getJobBadge(dateStr) {
     if (!dateStr) return "";
     const postedDate = new Date(dateStr);
@@ -218,21 +197,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return "";
   }
 
-  // --- Fetch Categories (Unified Dropdown) ---
+  // --- Fetch Categories ---
   async function fetchCategories() {
     try {
-      // Fetch Remotive categories
       const remotiveRes = await fetch("https://remotive.com/api/remote-jobs/categories");
       const remotiveData = await remotiveRes.json();
 
-      // Fetch Adzuna categories
       const adzunaRes = await fetch(`https://api.adzuna.com/v1/api/jobs/us/categories?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}`);
       const adzunaData = await adzunaRes.json();
 
       if (categorySelect) {
-        categorySelect.innerHTML = `<option value="">All Categories</option>`; // ✅ Default
+        categorySelect.innerHTML = `<option value="">All Categories</option>`;
 
-        // Add Remotive categories
         remotiveData.jobs.forEach(cat => {
           const option = document.createElement("option");
           option.value = `remotive:${cat.slug}`;
@@ -240,7 +216,6 @@ document.addEventListener("DOMContentLoaded", () => {
           categorySelect.appendChild(option);
         });
 
-        // Add Adzuna categories
         adzunaData.results.forEach(cat => {
           const option = document.createElement("option");
           option.value = `adzuna:${cat.tag}`;
@@ -253,13 +228,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Fetch Jobs ---
+  // --- Fetch Remote Jobs ---
   async function fetchRemoteJobs(search = "", category = "") {
     try {
       loadingRemote = true;
       updateLoadingMessage();
 
-      let url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
+      let query = search;
+      if (visaCheckbox && visaCheckbox.checked) {
+        query += " visa sponsorship OR work visa OR relocation assistance";
+      }
+
+      let url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query)}`;
       if (category.startsWith("remotive:")) {
         url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
       }
@@ -268,14 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       remoteJobsDiv.innerHTML = "";
 
-      const sortedJobs = data.jobs.slice(0, 10).sort(job => {
-        const badge = getJobBadge(job.publication_date);
-        if (badge.includes("New")) return -1;
-        if (badge.includes("Expiring Soon")) return 1;
-        return 0;
-      });
-
-      sortedJobs.forEach(job => {
+      data.jobs.slice(0, 10).forEach(job => {
         const badge = getJobBadge(job.publication_date);
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
@@ -296,23 +269,27 @@ document.addEventListener("DOMContentLoaded", () => {
         remoteJobsDiv.appendChild(jobDiv);
       });
 
-      adjustPopupWidth();
     } catch (error) {
       console.error("Error fetching remote jobs:", error);
       remoteJobsDiv.innerHTML = "<p>⚠️ Failed to load remote jobs.</p>";
-      adjustPopupWidth();
     } finally {
       loadingRemote = false;
       updateLoadingMessage();
     }
   }
 
+  // --- Fetch Local Jobs ---
   async function fetchLocalJobs(country = "us", search = "", category = "") {
     try {
       loadingLocal = true;
       updateLoadingMessage();
 
-      let url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}&content-type=application/json`;
+      let query = search;
+      if (visaCheckbox && visaCheckbox.checked) {
+        query += " visa sponsorship OR work visa OR relocation assistance";
+      }
+
+      let url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(query)}&content-type=application/json`;
 
       if (category.startsWith("adzuna:")) {
         url += `&category=${encodeURIComponent(category.replace("adzuna:", ""))}`;
@@ -323,14 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       localJobsDiv.innerHTML = "";
 
-      const sortedJobs = data.results.sort(job => {
-        const badge = getJobBadge(job.created);
-        if (badge.includes("New")) return -1;
-        if (badge.includes("Expiring Soon")) return 1;
-        return 0;
-      });
-
-      sortedJobs.forEach(job => {
+      data.results.forEach(job => {
         const badge = getJobBadge(job.created);
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
@@ -351,11 +321,9 @@ document.addEventListener("DOMContentLoaded", () => {
         localJobsDiv.appendChild(jobDiv);
       });
 
-      adjustPopupWidth();
     } catch (error) {
       console.error("Error fetching local jobs:", error);
       localJobsDiv.innerHTML = "<p>⚠️ Failed to load local jobs.</p>";
-      adjustPopupWidth();
     } finally {
       loadingLocal = false;
       updateLoadingMessage();
@@ -366,56 +334,52 @@ document.addEventListener("DOMContentLoaded", () => {
     loadingMessage.style.display = (loadingRemote || loadingLocal) ? "block" : "none";
   }
 
-  // --- Adjust Popup Width Dynamically ---
-  function adjustPopupWidth() {
-    const remoteWidth = remoteJobsDiv.scrollWidth;
-    const localWidth = localJobsDiv.scrollWidth;
-    const padding = 40;
-    const totalWidth = remoteWidth + localWidth + padding;
-    window.resizeTo(totalWidth, window.outerHeight);
+  // --- Unified Search Function ---
+  function runSearch() {
+    const searchTerm = jobSearchInput.value;
+    const category = categorySelect ? categorySelect.value : "";
+    const country = countrySelect ? countrySelect.value : "us";
+
+    fetchRemoteJobs(searchTerm, category);
+    fetchLocalJobs(country, searchTerm, category);
+    saveSearchHistory(searchTerm);
   }
 
   // --- Event Listeners ---
   if (viewJobsBtn) {
     viewJobsBtn.addEventListener("click", () => {
-      if (welcomeScreen) welcomeScreen.style.display = "none";
-      if (jobBoard) jobBoard.style.display = "block";
+      welcomeScreen.style.display = "none";
+      jobBoard.style.display = "block";
 
-      fetchCategories(); // ✅ Unified categories load here
+      fetchCategories();
       fetchRemoteJobs();
-      fetchLocalJobs(countrySelect ? countrySelect.value : "us");
+      fetchLocalJobs(countrySelect.value);
       updateSavedJobsUI();
       updateSearchHistoryUI();
     });
   }
 
   if (countrySelect) {
-    countrySelect.addEventListener("change", () => {
-      fetchLocalJobs(countrySelect.value, jobSearchInput.value, categorySelect ? categorySelect.value : "");
-    });
+    countrySelect.addEventListener("change", runSearch);
   }
 
   if (categorySelect) {
-    categorySelect.addEventListener("change", () => {
-      fetchRemoteJobs(jobSearchInput.value, categorySelect.value);
-      fetchLocalJobs(countrySelect ? countrySelect.value : "us", jobSearchInput.value, categorySelect.value);
-    });
+    categorySelect.addEventListener("change", runSearch);
   }
 
   if (searchBtn) {
-    searchBtn.addEventListener("click", () => {
-      const searchTerm = jobSearchInput.value;
-      fetchRemoteJobs(searchTerm, categorySelect ? categorySelect.value : "");
-      fetchLocalJobs(countrySelect ? countrySelect.value : "us", searchTerm, categorySelect ? categorySelect.value : "");
-      saveSearchHistory(searchTerm);
-    });
+    searchBtn.addEventListener("click", runSearch);
+  }
+
+  if (visaCheckbox) {
+    visaCheckbox.addEventListener("change", runSearch);
   }
 });
 
 // --- ADZUNA CONFIG ---
 const ADZUNA_APP_ID = "b39ca9ec";
 const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
-// --- END ADZUNA CONFIG ---
+
 // --- IGNORE ---
 
 
