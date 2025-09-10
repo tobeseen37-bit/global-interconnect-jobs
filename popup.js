@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       let url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query)}`;
-      if (category.startsWith("remotive:")) {
+      if (category && category.startsWith("remotive:")) {
         url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
       }
 
@@ -298,14 +298,12 @@ document.addEventListener("DOMContentLoaded", () => {
         url += `&where=${encodeURIComponent(city)}`;
       }
 
-      if (category.startsWith("adzuna:")) {
+      if (category && category.startsWith("adzuna:")) {
         url += `&category=${encodeURIComponent(category.replace("adzuna:", ""))}`;
       }
 
       const response = await fetch(url, {
-        headers: {
-          "Accept": "application/json"
-        }
+        headers: { "Accept": "application/json" }
       });
 
       if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
@@ -376,25 +374,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  if (countrySelect) {
-    countrySelect.addEventListener("change", runSearch);
-  }
-
-  if (categorySelect) {
-    categorySelect.addEventListener("change", runSearch);
-  }
-
-  if (searchBtn) {
-    searchBtn.addEventListener("click", runSearch);
-  }
-
-  if (visaCheckbox) {
-    visaCheckbox.addEventListener("change", runSearch);
-  }
+  if (countrySelect) countrySelect.addEventListener("change", runSearch);
+  if (categorySelect) categorySelect.addEventListener("change", runSearch);
+  if (searchBtn) searchBtn.addEventListener("click", runSearch);
+  if (visaCheckbox) visaCheckbox.addEventListener("change", runSearch);
 
   if (cityInput) {
     cityInput.addEventListener("input", () => {
-      // auto-run search when user types a city
       if (cityInput.value.trim().length > 2) {
         runSearch();
       }
@@ -405,6 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // --- ADZUNA CONFIG ---
 const ADZUNA_APP_ID = "b39ca9ec";
 const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
+
 
 
 // --- IGNORE ---

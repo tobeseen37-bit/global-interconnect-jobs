@@ -9,6 +9,7 @@
       font-family: Arial, sans-serif;
       width: 380px;
       padding: 10px;
+      background: #f5f5f5;
     }
     #welcome-screen, #job-board {
       text-align: center;
@@ -21,6 +22,10 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background-color: #0056b3;
     }
     button:disabled {
       background-color: #ccc;
@@ -32,14 +37,44 @@
       text-align: left;
       margin-top: 10px;
     }
+    /* Job Cards */
     .job {
-      border-bottom: 1px solid #ddd;
-      padding: 8px 0;
+      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
       cursor: pointer;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
     }
     .job:hover {
-      background: #f7f7f7;
+      background: #f0f8ff;
+      transform: translateY(-2px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.12);
     }
+    .job-title {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .job-company {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+    .job-location {
+      font-size: 12px;
+      color: #777;
+      margin-bottom: 6px;
+    }
+    .job-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    /* Search bar */
     #search-bar {
       margin: 10px 0;
     }
@@ -54,6 +89,8 @@
       padding: 5px;
       border-radius: 5px;
     }
+
+    /* Saved Jobs */
     #saved-jobs-section {
       margin-top: 15px;
       border-top: 2px solid #ddd;
@@ -61,15 +98,27 @@
       text-align: left;
     }
     .saved-job {
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #e3f2fd;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      border-left: 4px solid #007bff;
+      transition: background 0.2s;
+    }
+    .saved-job:hover {
+      background: #d0e7ff;
     }
     .delete-btn {
       margin-left: 8px;
-      color: red;
+      color: #dc3545;
       cursor: pointer;
       font-size: 12px;
     }
+
     #loading-message {
       margin: 10px 0;
       font-style: italic;
@@ -89,37 +138,46 @@
     }
     .modal-content {
       background: #fff;
-      padding: 15px;
-      border-radius: 8px;
+      padding: 20px;
+      border-radius: 12px;
       width: 90%;
       max-height: 80%;
       overflow-y: auto;
       text-align: left;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
     }
     .modal-header {
       font-size: 18px;
-      margin-bottom: 10px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
     }
     .close-btn {
-      float: right;
-      font-size: 18px;
+      font-size: 20px;
       cursor: pointer;
       color: #333;
+      transition: color 0.2s;
+    }
+    .close-btn:hover {
+      color: #007bff;
+    }
+    .modal-body {
+      font-size: 13px;
+      color: #333;
+      margin-top: 10px;
     }
 
     /* ====== BADGE STYLES ====== */
-    .job-badges {
-      margin-top: 6px;
-      margin-bottom: 4px;
-    }
     .badge {
       display: inline-block;
       padding: 3px 8px;
-      margin-right: 6px;
       font-size: 11px;
       border-radius: 12px;
       color: #fff;
-      background: #6c757d;
       line-height: 1;
     }
     .badge-remote { background: #007bff; }
@@ -144,6 +202,7 @@
       margin: 3px;
       font-size: 12px;
       cursor: pointer;
+      transition: background 0.2s;
     }
     .history-item:hover {
       background: #e0e0e0;
@@ -155,7 +214,6 @@
       cursor: pointer;
     }
 
-    /* Clear History button style */
     #clear-history-btn {
       display: inline-flex;
       align-items: center;
@@ -167,12 +225,13 @@
       cursor: pointer;
       border: none;
       color: #dc3545;
+      transition: background 0.2s;
     }
     #clear-history-btn:hover {
       background: #e0e0e0;
     }
 
-    /* ===== NEW ADDITIONS ===== */
+    /* Filters */
     #filters {
       margin-top: 10px;
       text-align: left;
@@ -213,7 +272,6 @@
       margin-top: 0;
     }
 
-    /* small helper text */
     .helper {
       font-size: 11px;
       color: #666;
@@ -259,7 +317,6 @@
         <div class="helper">Categories pulled dynamically from Remotive + Adzuna APIs.</div>
       </div>
 
-      <!-- City/state + visa -->
       <div id="filters-row">
         <div>
           <label for="city-input">City / State (optional)</label>
@@ -288,7 +345,7 @@
     <!-- Loading message -->
     <div id="loading-message" style="display:none;">Searching jobs...</div>
 
-    <!-- Jobs container: side-by-side -->
+    <!-- Jobs container -->
     <div id="jobs-container">
       <div id="remote-jobs-wrapper">
         <h3>🌐 Remote Jobs</h3>
@@ -310,16 +367,18 @@
   <!-- Job Modal -->
   <div id="job-modal" class="modal">
     <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <div id="modal-body"></div>
+      <div class="modal-header">
+        <span id="modal-title">Job Details</span>
+        <span class="close-btn">&times;</span>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
     </div>
   </div>
-
-  <!-- Upgrade Modal will be injected by JS -->
 
   <script src="popup.js"></script>
 </body>
 </html>
+
 
 
 
