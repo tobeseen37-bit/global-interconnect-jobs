@@ -286,11 +286,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const visaChecked = visaCheckbox && visaCheckbox.checked;
       const visaUnsupportedCountries = ["se", "no"];
 
-      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
-        targetDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country.</p>";
-        return;
-      }
-
       let url = "";
       if (type === "remote") {
         url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
@@ -311,7 +306,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       targetDiv.innerHTML = "";
 
-      let jobs = type === "remote" ? data.jobs : data.results;
+      // --- Safely handle missing results ---
+      let jobs = type === "remote" ? data.jobs || [] : data.results || [];
+
+      // --- Handle visa unsupported countries gracefully ---
+      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
+        if (jobs.length > 0) {
+          targetDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country, showing all jobs.</p>";
+        } else {
+          targetDiv.innerHTML = "<p>No local jobs found for this country.</p>";
+          return;
+        }
+      }
 
       // --- Enhanced keyword filtering ---
       let searchRegex = null;
@@ -400,5 +406,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 // --- END OF FILE ---
-// --- IGNORE ---
+
       
