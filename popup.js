@@ -256,6 +256,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- Enhanced Visa Filtering ---
+  const VISA_KEYWORDS = [
+    "visa sponsorship",
+    "work visa",
+    "relocation assistance",
+    "h-1b",
+    "f-1",
+    "opt",
+    "tn",
+    "e-2",
+    "eb-3"
+  ];
+  const VISA_REGEX = new RegExp(VISA_KEYWORDS.join("|"), "i");
+
+  // --- Utility: escape regex special characters ---
+  function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
   // --- Generic Fetch Jobs ---
   async function fetchJobs({ type, search = "", category = "", country = "us", targetDiv }) {
     try {
@@ -265,7 +284,6 @@ document.addEventListener("DOMContentLoaded", () => {
       updateLoadingMessage();
 
       const visaChecked = visaCheckbox && visaCheckbox.checked;
-      let query = search;
       const visaUnsupportedCountries = ["se", "no"];
 
       if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
@@ -273,16 +291,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (visaChecked) query += " visa sponsorship OR work visa OR relocation assistance";
-
       let url = "";
       if (type === "remote") {
-        url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query)}`;
+        url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
         if (category && category.startsWith("remotive:")) {
           url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
         }
       } else {
-        url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(query)}`;
+        url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`;
         if (cityInput && cityInput.value.trim()) {
           url += `&where=${encodeURIComponent(cityInput.value.trim())}`;
         }
@@ -295,7 +311,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       targetDiv.innerHTML = "";
 
-      const jobs = type === "remote" ? data.jobs : data.results;
+      let jobs = type === "remote" ? data.jobs : data.results;
+
+      // --- Enhanced keyword filtering ---
+      let searchRegex = null;
+      if (search.trim()) {
+        const keywords = search
+          .split(/\s+/)
+          .map(k => escapeRegex(k))
+          .filter(Boolean);
+        searchRegex = new RegExp(keywords.join("|"), "i");
+      }
+
+      jobs = jobs.filter(job => {
+        const title = job.title || "";
+        const desc = job.description || "";
+        const location = type === "remote" ? job.candidate_required_location : (job.location?.display_name || "");
+        const keywordMatch = !searchRegex || searchRegex.test(title) || searchRegex.test(desc) || searchRegex.test(location);
+        const visaMatch = !visaChecked || VISA_REGEX.test(desc);
+        return keywordMatch && visaMatch;
+      });
+
       if (!jobs || jobs.length === 0) {
         targetDiv.innerHTML = `<p>No ${type} jobs found.</p>`;
         return;
@@ -364,4 +400,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 // --- END OF FILE ---
+// --- IGNORE ---
       
