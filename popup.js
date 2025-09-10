@@ -19,11 +19,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const countrySelect = document.getElementById("country-select");
   const jobSearchInput = document.getElementById("job-search");
-  const cityInput = document.getElementById("city-input"); // ✅ city/state filter
+  const cityInput = document.getElementById("city-input");
   const searchBtn = document.getElementById("search-btn");
   const loadingMessage = document.getElementById("loading-message");
   const categorySelect = document.getElementById("category-select");
-  const visaCheckbox = document.getElementById("visa-checkbox"); // ✅ Visa Sponsorship checkbox
+  const visaCheckbox = document.getElementById("visa-checkbox");
 
   let loadingRemote = false;
   let loadingLocal = false;
@@ -279,20 +279,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Fetch Local Jobs ---
+  // --- Fetch Local Jobs with Option1+2 Fix ---
   async function fetchLocalJobs(country = "us", search = "", category = "") {
     try {
       loadingLocal = true;
       updateLoadingMessage();
 
+      const visaUnsupportedCountries = ["se", "no"]; // Sweden, Norway
       let query = search;
-      if (visaCheckbox && visaCheckbox.checked) {
+      const visaChecked = visaCheckbox && visaCheckbox.checked;
+
+      // Warn if visa filter is unsupported
+      if (visaChecked && visaUnsupportedCountries.includes(country)) {
+        localJobsDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country.</p>";
+        return;
+      }
+
+      if (visaChecked) {
         query += " visa sponsorship OR work visa OR relocation assistance";
       }
 
       let url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(query)}`;
 
-      // ✅ include city/state filter
       const city = cityInput ? cityInput.value.trim() : "";
       if (city) {
         url += `&where=${encodeURIComponent(city)}`;
@@ -302,23 +310,16 @@ document.addEventListener("DOMContentLoaded", () => {
         url += `&category=${encodeURIComponent(category.replace("adzuna:", ""))}`;
       }
 
-      const response = await fetch(url, {
-        headers: { "Accept": "application/json" }
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch Adzuna jobs.");
+      const response = await fetch(url,
+        { headers: { "Accept": "application/json" } }
+      );
       const data = await response.json();
-      localJobsDiv.innerHTML = "";
+      localJobsDiv.innerHTML = "";          
 
-      if (!data.results || data.results.length === 0) {
-        localJobsDiv.innerHTML = "<p>No local jobs found.</p>";
-        return;
-      }
-
-      data.results.forEach(job => {
+      data.results.slice(0, 10).forEach(job => {
         const badge = getJobBadge(job.created);
         const jobDiv = document.createElement("div");
-        jobDiv.className = "job";
+        jobDiv.className = "job";        
         jobDiv.innerHTML = `
           <strong>${job.title}</strong> 
           <span class="badge badge-local">Local</span> ${badge}<br>
@@ -330,7 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
             company: job.company.display_name,
             location: job.location.display_name,
             description: job.description,
-            url: job.redirect_url
+            url: job.application_uri
           });
         });
         localJobsDiv.appendChild(jobDiv);
@@ -340,89 +341,36 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error fetching local jobs:", error);
       localJobsDiv.innerHTML = "<p>⚠️ Failed to load local jobs.</p>";
     } finally {
-      loadingLocal = false;
-      updateLoadingMessage();
+        loadingLocal = false;
+        updateLoadingMessage();
+      }
+    }
+  
+    // Initialize UI on load
+    updateSavedJobsUI();
+    updateSearchHistoryUI();
+    fetchCategories();
+  
+    // Add event listeners
+    if (viewJobsBtn) {
+      viewJobsBtn.addEventListener("click", () => {
+        welcomeScreen.style.display = "none";
+        jobBoard.style.display = "block";
+      });
+    }
+  
+    if (searchBtn) {
+      searchBtn.addEventListener("click", runSearch);
+    }
+  
+    function runSearch() {
+      const searchTerm = jobSearchInput.value.trim();
+      const selectedCountry = countrySelect ? countrySelect.value : "us";
+      const selectedCategory = categorySelect ? categorySelect.value : "";
+      saveSearchHistory(searchTerm);
+      fetchRemoteJobs(searchTerm, selectedCategory);
+      fetchLocalJobs(selectedCountry, searchTerm, selectedCategory);
     }
   }
-
-  function updateLoadingMessage() {
-    loadingMessage.style.display = (loadingRemote || loadingLocal) ? "block" : "none";
-  }
-
-  // --- Unified Search Function ---
-  function runSearch() {
-    const searchTerm = jobSearchInput.value;
-    const category = categorySelect ? categorySelect.value : "";
-    const country = countrySelect ? countrySelect.value : "us";
-
-    fetchRemoteJobs(searchTerm, category);
-    fetchLocalJobs(country, searchTerm, category);
-    saveSearchHistory(searchTerm);
-  }
-
-  // --- Event Listeners ---
-  if (viewJobsBtn) {
-    viewJobsBtn.addEventListener("click", () => {
-      welcomeScreen.style.display = "none";
-      jobBoard.style.display = "block";
-
-      fetchCategories();
-      fetchRemoteJobs();
-      fetchLocalJobs(countrySelect.value);
-      updateSavedJobsUI();
-      updateSearchHistoryUI();
-    });
-  }
-
-  if (countrySelect) countrySelect.addEventListener("change", runSearch);
-  if (categorySelect) categorySelect.addEventListener("change", runSearch);
-  if (searchBtn) searchBtn.addEventListener("click", runSearch);
-  if (visaCheckbox) visaCheckbox.addEventListener("change", runSearch);
-
-  if (cityInput) {
-    cityInput.addEventListener("input", () => {
-      if (cityInput.value.trim().length > 2) {
-        runSearch();
-      }
-    });
-  }
-});
-
-// --- ADZUNA CONFIG ---
-const ADZUNA_APP_ID = "b39ca9ec";
-const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
-
-
-
-// --- IGNORE ---
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  );
       
