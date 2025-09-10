@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  // --- Generic Fetch Jobs (Updated for SE/NO) ---
+  // --- Generic Fetch Jobs ---
   async function fetchJobs({ type, search = "", category = "", country = "us", targetDiv }) {
     try {
       if (!targetDiv) return;
@@ -285,8 +285,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const visaChecked = visaCheckbox && visaCheckbox.checked;
       const visaUnsupportedCountries = ["se", "no"];
+      const applyVisaFilter = visaChecked && !visaUnsupportedCountries.includes(country);
 
-      // --- URL setup ---
       let url = "";
       if (type === "remote") {
         url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
@@ -294,13 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
           url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
         }
       } else {
-        // Adzuna local jobs
-        const supportedCountries = ["us","gb","ca","de","fr"]; // adjust list based on Adzuna support
-        if (!supportedCountries.includes(country)) {
-          targetDiv.innerHTML = `<p>Local jobs are not available for this country.</p>`;
-          return;
-        }
-
         url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`;
         if (cityInput && cityInput.value.trim()) {
           url += `&where=${encodeURIComponent(cityInput.value.trim())}`;
@@ -311,7 +304,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const response = await fetch(url, type === "local" ? { headers: { Accept: "application/json" } } : {});
-      
       let data;
       const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
@@ -326,13 +318,16 @@ document.addEventListener("DOMContentLoaded", () => {
       targetDiv.innerHTML = "";
       let jobs = type === "remote" ? data.jobs || [] : data.results || [];
 
-      // --- Remote country filter for SE/NO ---
-      if (type === "remote" && ["se","no"].includes(country)) {
-        const countryName = country === "se" ? "Sweden" : "Norway";
-        jobs = jobs.filter(job => (job.candidate_required_location || "").toLowerCase().includes(countryName.toLowerCase()));
+      // --- Remote country filter for all selected countries ---
+      if (type === "remote" && country) {
+        const countryNameMap = { se: "Sweden", no: "Norway", es: "Spain", it: "Italy", us: "United States" };
+        const countryName = countryNameMap[country.toLowerCase()] || "";
+        if (countryName) {
+          jobs = jobs.filter(job => (job.candidate_required_location || "").toLowerCase().includes(countryName.toLowerCase()));
+        }
       }
 
-      // --- Enhanced keyword filtering ---
+      // --- Enhanced keyword & visa filtering ---
       let searchRegex = null;
       if (search.trim()) {
         const keywords = search
@@ -347,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const desc = job.description || "";
         const location = type === "remote" ? job.candidate_required_location : (job.location?.display_name || "");
         const keywordMatch = !searchRegex || searchRegex.test(title) || searchRegex.test(desc) || searchRegex.test(location);
-        const visaMatch = !visaChecked || VISA_REGEX.test(desc);
+        const visaMatch = !applyVisaFilter || VISA_REGEX.test(desc);
         return keywordMatch && visaMatch;
       });
 
