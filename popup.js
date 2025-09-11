@@ -283,12 +283,6 @@ document.addEventListener("DOMContentLoaded", () => {
       updateLoadingMessage();
 
       const visaChecked = visaCheckbox && visaCheckbox.checked;
-      const visaUnsupportedCountries = ["se", "no"];
-
-      if (type === "local" && visaChecked && visaUnsupportedCountries.includes(country)) {
-        targetDiv.innerHTML = "<p>⚠️ Visa filtering is not supported for this country.</p>";
-        return;
-      }
 
       async function fetchAdzuna(countryCode) {
         let url = `https://api.adzuna.com/v1/api/jobs/${countryCode}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(search)}`;
@@ -321,12 +315,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       } else {
         jobs = await fetchAdzuna(country);
-        if ((!jobs || jobs.length === 0) && (country === "se" || country === "no")) {
-          console.warn(`No jobs found for ${country}, trying fallback...`);
-          const fallbackDE = await fetchAdzuna("de");
-          const fallbackFR = await fetchAdzuna("fr");
-          jobs = [...fallbackDE, ...fallbackFR];
-        }
       }
 
       targetDiv.innerHTML = "";
@@ -357,11 +345,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       jobs.slice(0,10).forEach(job => {
         const badge = getJobBadge(job.publication_date || job.created);
+
+        // ✅ Add Worldwide Badge if location is worldwide
+        let extraBadge = "";
+        if (type === "remote" && (job.candidate_required_location || "").toLowerCase().includes("worldwide")) {
+          extraBadge = '<span class="badge worldwide">Worldwide</span>';
+        }
+
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
         jobDiv.innerHTML = `
           <strong>${job.title}</strong>
-          <span class="badge badge-${type}">${type === "remote" ? "Remote" : "Local"}</span> ${badge}<br>
+          <span class="badge badge-${type}">${type === "remote" ? "Remote" : "Local"}</span> ${extraBadge} ${badge}<br>
           ${type === "remote" ? `${job.company_name} – ${job.candidate_required_location}` : `${job.company.display_name} – ${job.location.display_name}`}
         `;
         jobDiv.addEventListener("click", () => {
@@ -389,6 +384,15 @@ document.addEventListener("DOMContentLoaded", () => {
   updateSavedJobsUI();
   updateSearchHistoryUI();
   fetchCategories();
+
+  // --- Remove Sweden & Norway ---
+  if (countrySelect) {
+    const removeList = ["se", "no"];
+    removeList.forEach(code => {
+      const opt = countrySelect.querySelector(`option[value="${code}"]`);
+      if (opt) opt.remove();
+    });
+  }
 
   // --- Event Listeners ---
   if (viewJobsBtn) viewJobsBtn.addEventListener("click", () => {
