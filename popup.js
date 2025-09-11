@@ -270,12 +270,11 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   const VISA_REGEX = new RegExp(VISA_KEYWORDS.join("|"), "i");
 
-  // --- Utility: escape regex special characters ---
   function escapeRegex(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  // --- Generic Fetch Jobs with fallback ---
+  // --- Generic Fetch Jobs with worldwide fix ---
   async function fetchJobs({ type, search = "", category = "", country = "us", targetDiv }) {
     try {
       if (!targetDiv) return;
@@ -310,9 +309,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (category && category.startsWith("remotive:")) {
           url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
         }
+        url += `&limit=50`;
         const response = await fetch(url);
         const data = await response.json();
-        jobs = data.jobs;
+
+        // ✅ Fix: always include worldwide + country-specific matches
+        jobs = data.jobs.filter(job => {
+          const loc = (job.candidate_required_location || "").toLowerCase();
+          if (!country || country === "worldwide") return true;
+          return loc.includes("worldwide") || loc.includes(country.toLowerCase());
+        });
       } else {
         jobs = await fetchAdzuna(country);
         if ((!jobs || jobs.length === 0) && (country === "se" || country === "no")) {
@@ -405,7 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectedCountry = countrySelect ? countrySelect.value : "us";
     const selectedCategory = categorySelect ? categorySelect.value : "";
     saveSearchHistory(searchTerm);
-    fetchJobs({ type:"remote", search:searchTerm, category:selectedCategory, targetDiv:remoteJobsDiv });
+    fetchJobs({ type:"remote", search:searchTerm, category:selectedCategory, country:selectedCountry, targetDiv:remoteJobsDiv });
     fetchJobs({ type:"local", search:searchTerm, category:selectedCategory, country:selectedCountry, targetDiv:localJobsDiv });
   }
 });
