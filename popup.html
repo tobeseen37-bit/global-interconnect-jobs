@@ -5,293 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Global Inter-Connect Jobs</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      width: 380px;
-      padding: 10px;
-      background: #f5f5f5;
-    }
-    #welcome-screen, #job-board {
-      text-align: center;
-    }
-    button {
-      padding: 8px 16px;
-      margin: 6px 0;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    #job-list {
-      max-height: 220px;
-      overflow-y: auto;
-      text-align: left;
-      margin-top: 10px;
-    }
-    /* Job Cards */
-    .job {
-      border: 1px solid #ddd;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      background: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    }
-    .job:hover {
-      background: #f0f8ff;
-      transform: translateY(-2px);
-      box-shadow: 0 3px 6px rgba(0,0,0,0.12);
-    }
-    .job-title {
-      font-weight: bold;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    .job-company {
-      font-size: 12px;
-      color: #555;
-      margin-bottom: 4px;
-    }
-    .job-location {
-      font-size: 12px;
-      color: #777;
-      margin-bottom: 6px;
-    }
-    .job-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
+    body { font-family: Arial, sans-serif; width: 380px; padding: 10px; background: #f5f5f5; }
+    #welcome-screen, #job-board { text-align: center; }
+    button { padding: 8px 16px; margin: 6px 0; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
+    button:hover { background-color: #0056b3; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    #job-list { max-height: 220px; overflow-y: auto; text-align: left; margin-top: 10px; }
 
-    /* Search bar */
-    #search-bar {
-      margin: 10px 0;
-    }
-    #job-search {
-      width: 90%;
-      padding: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    select {
-      margin: 8px 0;
-      padding: 5px;
-      border-radius: 5px;
-    }
+    /* Job Cards */
+    .job { border: 1px solid #ddd; padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: background 0.2s, transform 0.1s, box-shadow 0.2s; }
+    .job:hover { background: #f0f8ff; transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.12); }
+
+    /* Search & Filters */
+    #filters { margin-top: 10px; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+    #filters-row { display: flex; gap: 8px; align-items: center; }
+    #filters-row > * { flex: 1; }
+    #filters .small { flex: 0 0 auto; display:flex; align-items:center; gap:6px; }
+    #search-bar { margin: 10px 0; }
+    #job-search { width: 90%; padding: 5px; border-radius: 5px; border: 1px solid #ccc; }
 
     /* Saved Jobs */
-    #saved-jobs-section {
-      margin-top: 15px;
-      border-top: 2px solid #ddd;
-      padding-top: 10px;
-      text-align: left;
-    }
-    .saved-job {
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: #e3f2fd;
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      border-left: 4px solid #007bff;
-      transition: background 0.2s;
-    }
-    .saved-job:hover {
-      background: #d0e7ff;
-    }
-    .delete-btn {
-      margin-left: 8px;
-      color: #dc3545;
-      cursor: pointer;
-      font-size: 12px;
-    }
+    #saved-jobs-section { margin-top: 15px; border-top: 2px solid #ddd; padding-top: 10px; text-align: left; }
+    .saved-job { padding: 8px 10px; border-radius: 8px; background: #e3f2fd; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-left: 4px solid #007bff; transition: background 0.2s; }
+    .saved-job:hover { background: #d0e7ff; }
+    .delete-btn { margin-left: 8px; color: #dc3545; cursor: pointer; font-size: 12px; }
 
-    #loading-message {
-      margin: 10px 0;
-      font-style: italic;
-      color: gray;
-    }
+    #loading-message { margin: 10px 0; font-style: italic; color: gray; }
 
     /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-height: 80%;
-      overflow-y: auto;
-      text-align: left;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    }
-    .modal-header {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 6px;
-    }
-    .close-btn {
-      font-size: 20px;
-      cursor: pointer;
-      color: #333;
-      transition: color 0.2s;
-    }
-    .close-btn:hover {
-      color: #007bff;
-    }
-    .modal-body {
-      font-size: 13px;
-      color: #333;
-      margin-top: 10px;
-    }
+    .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-height: 80%; overflow-y: auto; text-align: left; box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+    .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+    .close-btn { font-size: 20px; cursor: pointer; color: #333; transition: color 0.2s; }
+    .close-btn:hover { color: #007bff; }
+    .modal-body { font-size: 13px; color: #333; margin-top: 10px; }
 
-    /* ====== BADGE STYLES ====== */
-    .badge {
-      display: inline-block;
-      padding: 3px 8px;
-      font-size: 11px;
-      border-radius: 12px;
-      color: #fff;
-      line-height: 1;
-    }
-    .badge-remote { background: #007bff; }
-    .badge-local  { background: #6c757d; }
-    .badge-fulltime { background: #28a745; }
-    .badge-parttime { background: #ffc107; color: #212529; }
-    .badge-contract { background: #6f42c1; }
-    .badge-new { background: #17a2b8; }
-    .badge-warning { background: #fd7e14; }
-
-    /* Search history */
-    #search-history {
-      margin-top: 10px;
-      text-align: left;
-    }
-    .history-item {
-      display: inline-flex;
-      align-items: center;
-      background: #f1f1f1;
-      border-radius: 12px;
-      padding: 4px 8px;
-      margin: 3px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .history-item:hover {
-      background: #e0e0e0;
-    }
-    .history-item .delete-term-btn {
-      margin-left: 6px;
-      font-weight: bold;
-      color: red;
-      cursor: pointer;
-    }
-
-    #clear-history-btn {
-      display: inline-flex;
-      align-items: center;
-      background: #f1f1f1;
-      border-radius: 12px;
-      padding: 2px 6px;
-      font-size: 12px;
-      margin: 3px;
-      cursor: pointer;
-      border: none;
-      color: #dc3545;
-      transition: background 0.2s;
-    }
-    #clear-history-btn:hover {
-      background: #e0e0e0;
-    }
-
-    /* Filters */
-    #filters {
-      margin-top: 10px;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    #filters-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    #filters-row > * {
-      flex: 1;
-    }
-    #filters .small {
-      flex: 0 0 auto;
-    }
-
-    #jobs-container {
-      display: flex;
-      gap: 15px;
-      margin-top: 10px;
-    }
-    #remote-jobs-wrapper, #local-jobs-wrapper {
-      flex: 1;
-    }
-    #remote-jobs, #local-jobs {
-      height: 400px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 10px;
-      border-radius: 6px;
-      background: #fff;
-    }
-    #remote-jobs-wrapper h3, #local-jobs-wrapper h3 {
-      text-align: center;
-      margin-top: 0;
-    }
-
-    .helper {
-      font-size: 11px;
-      color: #666;
-      margin-top: 4px;
-    }
+    /* Badges */
+    .badge { display: inline-block; padding: 3px 8px; font-size: 11px; border-radius: 12px; color: #fff; line-height: 1; }
+    .badge-remote { background: #007bff; } .badge-local { background: #6c757d; }
+    .badge-new { background: #17a2b8; } .badge-warning { background: #fd7e14; }
   </style>
 </head>
 <body>
-  <!-- Welcome screen -->
   <div id="welcome-screen">
     <h2>🌍 Welcome to Global Inter-Connect Jobs</h2>
     <p>Find remote and local opportunities worldwide.</p>
     <button id="viewJobsBtn">Get Started</button>
   </div>
 
-  <!-- Job board -->
   <div id="job-board" style="display:none;">
     <h2>Job Listings</h2>
 
-    <!-- Country selector -->
     <label for="country-select">Choose Country:</label>
     <select id="country-select">
       <option value="us" selected>United States</option>
@@ -303,49 +67,29 @@
       <option value="es">Spain</option>
       <option value="it">Italy</option>
       <option value="nl">Netherlands</option>
-      <option value="se">Sweden</option>
-      <option value="no">Norway</option>
     </select>
 
-    <!-- Unified Category filter -->
     <div id="filters">
-      <div>
-        <label for="category-select">Category:</label>
-        <select id="category-select">
-          <option value="all" selected>All Categories</option>
-        </select>
-        <div class="helper">Categories pulled dynamically from Remotive + Adzuna APIs.</div>
-      </div>
-
       <div id="filters-row">
         <div>
           <label for="city-input">City / State (optional)</label>
           <input type="text" id="city-input" placeholder="City or state (e.g., London, CA)" />
         </div>
-        <div class="small" style="display:flex; align-items:center; gap:6px;">
+        <div class="small">
           <input type="checkbox" id="visa-checkbox" />
           <label for="visa-checkbox" style="margin:0;">Visa sponsorship</label>
         </div>
       </div>
     </div>
 
-    <!-- Search bar -->
     <div id="search-bar">
       <input type="text" id="job-search" placeholder="Search for jobs">
       <button id="search-btn">Search</button>
     </div>
 
-    <!-- Search history -->
-    <div id="search-history">
-      <strong>Recent Searches:</strong>
-      <div id="history-list"></div>
-      <button id="clear-history-btn">Clear History</button>
-    </div>
-
-    <!-- Loading message -->
+    <div id="search-history"></div>
     <div id="loading-message" style="display:none;">Searching jobs...</div>
 
-    <!-- Jobs container -->
     <div id="jobs-container">
       <div id="remote-jobs-wrapper">
         <h3>🌐 Remote Jobs</h3>
@@ -357,14 +101,12 @@
       </div>
     </div>
 
-    <!-- Saved jobs -->
     <div id="saved-jobs-section">
       <h3>💾 Saved Jobs (<span id="saved-jobs-counter">0/4 this month</span>)</h3>
       <div id="saved-jobs-list"></div>
     </div>
   </div>
 
-  <!-- Job Modal -->
   <div id="job-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -378,6 +120,11 @@
   <script src="popup.js"></script>
 </body>
 </html>
+<!-- --- IGNORE --- -->
+
+
+
+
 
 
 

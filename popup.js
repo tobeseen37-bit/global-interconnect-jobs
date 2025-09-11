@@ -27,7 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const cityInput = document.getElementById("city-input");
   const searchBtn = document.getElementById("search-btn");
   const loadingMessage = document.getElementById("loading-message");
-  const categorySelect = document.getElementById("category-select");
   const visaCheckbox = document.getElementById("visa-checkbox");
 
   let loadingRemote = false;
@@ -223,59 +222,8 @@ document.addEventListener("DOMContentLoaded", () => {
     loadingMessage.style.display = loadingRemote || loadingLocal ? "block" : "none";
   }
 
-  // --- Fetch Categories ---
-  async function fetchCategories() {
-    try {
-      const remotiveRes = await fetch("https://remotive.com/api/remote-jobs/categories");
-      const remotiveData = await remotiveRes.json();
-
-      const adzunaRes = await fetch(
-        `https://api.adzuna.com/v1/api/jobs/us/categories?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}`
-      );
-      const adzunaData = await adzunaRes.json();
-
-      if (categorySelect) {
-        categorySelect.innerHTML = `<option value="">All Categories</option>`;
-
-        remotiveData.jobs.forEach((cat) => {
-          const option = document.createElement("option");
-          option.value = `remotive:${cat.slug}`;
-          option.textContent = `🌍 Remote – ${cat.name}`;
-          categorySelect.appendChild(option);
-        });
-
-        adzunaData.results.forEach((cat) => {
-          const option = document.createElement("option");
-          option.value = `adzuna:${cat.tag}`;
-          option.textContent = `📍 Local – ${cat.label}`;
-          categorySelect.appendChild(option);
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  }
-
-  // --- Enhanced Visa Filtering ---
-  const VISA_KEYWORDS = [
-    "visa sponsorship",
-    "work visa",
-    "relocation assistance",
-    "h-1b",
-    "f-1",
-    "opt",
-    "tn",
-    "e-2",
-    "eb-3"
-  ];
-  const VISA_REGEX = new RegExp(VISA_KEYWORDS.join("|"), "i");
-
-  function escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
-
-  // --- Generic Fetch Jobs with worldwide fix ---
-  async function fetchJobs({ type, search = "", category = "", country = "us", targetDiv }) {
+  // --- Fetch Jobs ---
+  async function fetchJobs({ type, search = "", country = "us", targetDiv }) {
     try {
       if (!targetDiv) return;
       if (type === "remote") loadingRemote = true;
@@ -289,9 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cityInput && cityInput.value.trim()) {
           url += `&where=${encodeURIComponent(cityInput.value.trim())}`;
         }
-        if (category && category.startsWith("adzuna:")) {
-          url += `&category=${encodeURIComponent(category.replace("adzuna:", ""))}`;
-        }
         const response = await fetch(url, { headers: { Accept: "application/json" } });
         const data = await response.json();
         return data.results || [];
@@ -299,20 +244,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let jobs = [];
       if (type === "remote") {
-        let url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(search)}`;
-        if (category && category.startsWith("remotive:")) {
-          url += `&category=${encodeURIComponent(category.replace("remotive:", ""))}`;
-        }
-        url += `&limit=50`;
-        const response = await fetch(url);
-        const data = await response.json();
+        // Remote OK
+        const remoteOkRes = await fetch(`https://remoteok.com/api`);
+        let remoteOkData = await remoteOkRes.json();
+        remoteOkData = remoteOkData.filter(j => j.id);
 
-        // ✅ Fix: always include worldwide + country-specific matches
-        jobs = data.jobs.filter(job => {
-          const loc = (job.candidate_required_location || "").toLowerCase();
-          if (!country || country === "worldwide") return true;
-          return loc.includes("worldwide") || loc.includes(country.toLowerCase());
-        });
+        // We Work Remotely RSS
+        const wwrRes = await fetch(`https://weworkremotely.com/categories/remote-programming-jobs.rss`);
+        const wwrText = await wwrRes.text();
+        const parser = new DOMParser();
+        const wwrXML = parser.parseFromString(wwrText, "application/xml");
+        const wwrData = [...wwrXML.querySelectorAll("item")].map(item => ({
+          title: item.querySelector("title")?.textContent || "",
+          company_name: item.querySelector("title")?.textContent.split(":")[0] || "Unknown",
+          url: item.querySelector("link")?.textContent || "",
+          description: item.querySelector("description")?.textContent || "",
+          candidate_required_location: "Worldwide"
+        }));
+
+        // Working Nomads
+        const wnRes = await fetch(`https://www.workingnomads.com/jobs/feed`);
+        const wnText = await wnRes.text();
+        const wnXML = parser.parseFromString(wnText, "application/xml");
+        const wnData = [...wnXML.querySelectorAll("item")].map(item => ({
+          title: item.querySelector("title")?.textContent || "",
+          company_name: "Working Nomads",
+          url: item.querySelector("link")?.textContent || "",
+          description: item.querySelector("description")?.textContent || "",
+          candidate_required_location: "Worldwide"
+        }));
+
+        // unify
+        jobs = [
+          ...remoteOkData.map(j => ({
+            title: j.position || j.title,
+            company_name: j.company || "",
+            url: j.url,
+            description: j.description || "",
+            candidate_required_location: j.location || "Worldwide",
+            publication_date: j.date
+          })),
+          ...wwrData,
+          ...wnData
+        ];
       } else {
         jobs = await fetchAdzuna(country);
       }
@@ -323,18 +297,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      let searchRegex = null;
-      if (search.trim()) {
-        const keywords = search.split(/\s+/).map(k => escapeRegex(k)).filter(Boolean);
-        searchRegex = new RegExp(keywords.join("|"), "i");
-      }
+      const searchRegex = search.trim() ? new RegExp(search.split(/\s+/).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "i") : null;
 
       jobs = jobs.filter(job => {
         const title = job.title || "";
         const desc = job.description || "";
         const location = type === "remote" ? job.candidate_required_location : (job.location?.display_name || "");
         const keywordMatch = !searchRegex || searchRegex.test(title) || searchRegex.test(desc) || searchRegex.test(location);
-        const visaMatch = !visaChecked || VISA_REGEX.test(desc);
+        const visaMatch = !visaChecked || /visa|sponsorship|h-1b/i.test(desc);
         return keywordMatch && visaMatch;
       });
 
@@ -343,10 +313,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      jobs.slice(0,10).forEach(job => {
+      jobs.slice(0, 10).forEach(job => {
         const badge = getJobBadge(job.publication_date || job.created);
 
-        // ✅ Add Worldwide Badge if location is worldwide
         let extraBadge = "";
         if (type === "remote" && (job.candidate_required_location || "").toLowerCase().includes("worldwide")) {
           extraBadge = '<span class="badge worldwide">Worldwide</span>';
@@ -370,11 +339,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         targetDiv.appendChild(jobDiv);
       });
-    } catch(error) {
+    } catch (error) {
       console.error(`Error fetching ${type} jobs:`, error);
       targetDiv.innerHTML = `<p>⚠️ Failed to load ${type} jobs.</p>`;
     } finally {
-      if(type==="remote") loadingRemote = false;
+      if (type === "remote") loadingRemote = false;
       else loadingLocal = false;
       updateLoadingMessage();
     }
@@ -383,12 +352,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Initialize UI ---
   updateSavedJobsUI();
   updateSearchHistoryUI();
-  fetchCategories();
 
-  // --- Remove Sweden & Norway ---
+  // remove Sweden & Norway
   if (countrySelect) {
-    const removeList = ["se", "no"];
-    removeList.forEach(code => {
+    ["se","no"].forEach(code => {
       const opt = countrySelect.querySelector(`option[value="${code}"]`);
       if (opt) opt.remove();
     });
@@ -402,21 +369,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (searchBtn) searchBtn.addEventListener("click", runSearch);
   if (countrySelect) countrySelect.addEventListener("change", runSearch);
-  if (categorySelect) categorySelect.addEventListener("change", runSearch);
   if (visaCheckbox) visaCheckbox.addEventListener("change", runSearch);
   if (cityInput) {
     cityInput.addEventListener("input", () => {
-      if(cityInput.value.trim().length>2) runSearch();
+      if (cityInput.value.trim().length > 2) runSearch();
     });
   }
 
   function runSearch() {
     const searchTerm = jobSearchInput.value.trim();
     const selectedCountry = countrySelect ? countrySelect.value : "us";
-    const selectedCategory = categorySelect ? categorySelect.value : "";
     saveSearchHistory(searchTerm);
-    fetchJobs({ type:"remote", search:searchTerm, category:selectedCategory, country:selectedCountry, targetDiv:remoteJobsDiv });
-    fetchJobs({ type:"local", search:searchTerm, category:selectedCategory, country:selectedCountry, targetDiv:localJobsDiv });
+    fetchJobs({ type: "remote", search: searchTerm, country: selectedCountry, targetDiv: remoteJobsDiv });
+    fetchJobs({ type: "local", search: searchTerm, country: selectedCountry, targetDiv: localJobsDiv });
   }
 });
 // --- END OF FILE ---
