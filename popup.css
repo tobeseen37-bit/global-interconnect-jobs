@@ -2,22 +2,24 @@ body {
   font-family: Arial, sans-serif;
   padding: 10px;
   width: 600px;
+  background: #fafafa;
+  color: #333;
 }
 
 h1 {
   font-size: 18px;
-  color: #333;
+  margin: 0 0 10px 0;
 }
 
 button {
   background: #0077ff;
-  color: white;
+  color: #fff;
   border: none;
   padding: 8px 12px;
   cursor: pointer;
   border-radius: 4px;
+  transition: background 0.2s;
 }
-
 button:hover {
   background: #005fcc;
 }
@@ -28,7 +30,7 @@ button:hover {
   color: #555;
 }
 
-/* Two-column jobs layout */
+/* Jobs layout */
 #jobs-container {
   display: flex;
   gap: 15px;
@@ -42,18 +44,25 @@ button:hover {
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 8px;
-  background: #fafafa;
+  background: #fff;
 }
 
+/* Job cards */
 .job {
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 8px;
   margin: 5px 0;
   text-align: left;
+  transition: background 0.2s, transform 0.1s;
+  cursor: pointer;
+}
+.job:hover {
+  background: #f0f8ff;
+  transform: translateY(-2px);
 }
 
-/* Badges */
+/* Badge styles */
 .badge {
   display: inline-block;
   padding: 2px 6px;
@@ -62,29 +71,22 @@ button:hover {
   font-size: 11px;
   font-weight: bold;
   color: #fff;
+  line-height: 1;
 }
 
-.badge.new {
-  background-color: #28a745;
+.badge.primary { background-color: #007bff; }
+.badge.success { background-color: #28a745; }
+.badge.warning { background-color: #ffc107; color: #000; }
+.badge.info    { background-color: #17a2b8; }
+.badge.danger  { background-color: #dc3545; }
+.badge.new     { 
+  background-color: #28a745; 
   box-shadow: 0 0 6px 2px rgba(40, 167, 69, 0.7);
 }
 
-.badge.warning {
-  background-color: #ffc107;
-  color: #000;
-}
-
-.badge.info {
-  background-color: #17a2b8;
-}
-
-.badge.danger {
-  background-color: #dc3545;
-}
-
-.badge.success {
-  background-color: #28a745;
-}
-.badge.primary {
-  background-color: #007bff;
-} 
+/* Loading message */
+#loading-message {
+  margin: 10px 0;
+  font-style: italic;
+  color: #777;
+}   

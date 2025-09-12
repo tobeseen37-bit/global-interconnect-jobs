@@ -2,14 +2,17 @@
 const ADZUNA_APP_ID = "b39ca9ec";
 const ADZUNA_APP_KEY = "d8f3335fc89f05e7a577c1cc468eebf1";
 
+// --- RENDER SERVER URL ---
+const RENDER_SERVER = "https://remote-proxy.onrender.com";
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Popup loaded ✅");
 
+  // --- DOM ELEMENTS ---
   const viewJobsBtn = document.getElementById("viewJobsBtn");
   const welcomeScreen = document.getElementById("welcome-screen");
   const jobBoard = document.getElementById("job-board");
 
-  const jobsContainer = document.getElementById("jobs-container");
   const remoteJobsDiv = document.getElementById("remote-jobs");
   const localJobsDiv = document.getElementById("local-jobs");
 
@@ -31,8 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let loadingLocal = false;
 
   // --- Saved Jobs Helpers ---
-  function getSavedJobs() { return JSON.parse(localStorage.getItem("savedJobs")) || []; }
-  function saveJobsToStorage(jobs) { localStorage.setItem("savedJobs", JSON.stringify(jobs)); }
+  function getSavedJobs() {
+    return JSON.parse(localStorage.getItem("savedJobs")) || [];
+  }
+
+  function saveJobsToStorage(jobs) {
+    localStorage.setItem("savedJobs", JSON.stringify(jobs));
+  }
+
   function updateSavedJobsUI() {
     const jobs = getSavedJobs();
     savedJobsList.innerHTML = "";
@@ -62,57 +71,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function trySaveJob(job) {
     const jobs = getSavedJobs();
     if (jobs.length >= 4) {
-      alert("Upgrade required to save more jobs!");
+      alert("Upgrade to save more jobs."); 
       return;
     }
     jobs.push(job);
     saveJobsToStorage(jobs);
     updateSavedJobsUI();
-  }
-
-  // --- Search History ---
-  const searchHistoryDiv = document.getElementById("search-history");
-  function getSearchHistory() { return JSON.parse(localStorage.getItem("searchHistory")) || []; }
-  function saveSearchHistory(term) {
-    if (!term) return;
-    let history = getSearchHistory();
-    if (!history.includes(term) && history.length >= 3) return;
-    history = history.filter((t) => t.toLowerCase() !== term.toLowerCase());
-    history.unshift(term);
-    localStorage.setItem("searchHistory", JSON.stringify(history));
-    updateSearchHistoryUI();
-  }
-  function updateSearchHistoryUI() {
-    const history = getSearchHistory();
-    const historyListDiv = document.getElementById("history-list");
-    historyListDiv.innerHTML = "";
-    if (!history.length) { historyListDiv.innerHTML = "<p>No recent searches.</p>"; return; }
-    history.forEach((term, index) => {
-      const termWrapper = document.createElement("div");
-      termWrapper.style.display = "inline-block";
-      termWrapper.style.margin = "3px";
-
-      const termBtn = document.createElement("button");
-      termBtn.className = "history-btn";
-      termBtn.textContent = term;
-      termBtn.style.marginRight = "5px";
-      termBtn.addEventListener("click", () => { jobSearchInput.value = term; runSearch(); });
-
-      const deleteBtn = document.createElement("span");
-      deleteBtn.textContent = "❌";
-      deleteBtn.style.cursor = "pointer";
-      deleteBtn.style.fontSize = "12px";
-      deleteBtn.addEventListener("click", () => {
-        let updatedHistory = getSearchHistory();
-        updatedHistory.splice(index, 1);
-        localStorage.setItem("searchHistory", JSON.stringify(updatedHistory));
-        updateSearchHistoryUI();
-      });
-
-      termWrapper.appendChild(termBtn);
-      termWrapper.appendChild(deleteBtn);
-      historyListDiv.appendChild(termWrapper);
-    });
   }
 
   // --- Job Modal ---
@@ -125,128 +89,170 @@ document.addEventListener("DOMContentLoaded", () => {
       <button id="modal-save-btn">Save Job</button>
     `;
     jobModal.style.display = "flex";
-    document.getElementById("modal-save-btn").addEventListener("click", () => trySaveJob(job));
+
+    const saveBtn = document.getElementById("modal-save-btn");
+    saveBtn.addEventListener("click", () => trySaveJob(job));
   }
+
   if (closeBtn) closeBtn.addEventListener("click", () => (jobModal.style.display = "none"));
-  window.addEventListener("click", (e) => { if (e.target === jobModal) jobModal.style.display = "none"; });
+  window.addEventListener("click", (e) => {
+    if (e.target === jobModal) jobModal.style.display = "none";
+  });
 
-  function getJobBadge(dateStr) {
-    if (!dateStr) return "";
-    const postedDate = new Date(dateStr);
-    const now = new Date();
-    const diffHours = (now - postedDate) / (1000 * 60 * 60);
-    const diffDays = diffHours / 24;
-    if (diffHours <= 48) return '<span class="badge new">New</span>';
-    else if (diffDays >= 25) return '<span class="badge warning">Expiring Soon</span>';
-    return "";
-  }
-
+  // --- Loading Message ---
   function updateLoadingMessage() {
     loadingMessage.style.display = loadingRemote || loadingLocal ? "block" : "none";
   }
 
-  // --- Fetch Jobs ---
-  async function fetchJobs({ type, search = "", country = "us", targetDiv }) {
+  // --- Fetch Remote Jobs from Render ---
+  async function fetchRemoteJobs(searchTerm = "") {
     try {
-      if (!targetDiv) return;
-      if (type === "remote") loadingRemote = true; else loadingLocal = true;
+      loadingRemote = true;
       updateLoadingMessage();
 
-      const visaChecked = visaCheckbox && visaCheckbox.checked;
-      let jobs = [];
+      const endpoints = ["/remoteok", "/weworkremotely", "/remoteco"];
+      let allRemoteJobs = [];
 
-      if (type === "remote") {
-        const proxy = "https://api.allorigins.win/get?url=";
+      for (const endpoint of endpoints) {
+        const res = await fetch(RENDER_SERVER + endpoint);
+        let jobs = [];
 
-        // Remote OK
-        const rurl = encodeURIComponent("https://remoteok.com/api");
-        let remoteData = await fetch(proxy + rurl).then(r => r.json()).then(r => JSON.parse(r.contents).filter(j => j.id));
+        if (endpoint === "/remoteok") {
+          const data = await res.json();
+          jobs = data.slice(1).map(job => ({
+            title: job.position || job.title || "",
+            company: job.company || "RemoteOK",
+            url: job.url || "#",
+            description: job.description || "",
+            location: job.location || "Worldwide"
+          }));
+        } else {
+          const text = await res.text();
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(text, "application/xml");
+          jobs = [...xml.querySelectorAll("item")].map(item => ({
+            title: item.querySelector("title")?.textContent || "",
+            company: endpoint === "/weworkremotely" ? 
+                     (item.querySelector("title")?.textContent.split(":")[0] || "Unknown") : 
+                     "Remote.co",
+            url: item.querySelector("link")?.textContent || "#",
+            description: item.querySelector("description")?.textContent || "",
+            location: "Worldwide"
+          }));
+        }
 
-        // We Work Remotely (RSS)
-        const wwrRes = await fetch(proxy + encodeURIComponent("https://weworkremotely.com/categories/remote-programming-jobs.rss"));
-        const wwrText = (await wwrRes.json()).contents;
-        const parser = new DOMParser();
-        const wwrXML = parser.parseFromString(wwrText, "application/xml");
-        const wwrData = [...wwrXML.querySelectorAll("item")].map(item => ({
-          title: item.querySelector("title")?.textContent || "",
-          url: item.querySelector("link")?.textContent || "#",
-          company: item.querySelector("title")?.textContent.split("–")[0]?.trim() || "",
-          location: "Remote",
-          description: item.querySelector("description")?.textContent || "",
-          date: item.querySelector("pubDate")?.textContent || ""
-        }));
-
-        // Working Nomads (RSS)
-        const wnRes = await fetch(proxy + encodeURIComponent("https://www.workingnomads.co/api/v1/remote-jobs"));
-        let wnData = await wnRes.json();
-
-        jobs = [...remoteData.map(j => ({
-          title: j.position || j.title,
-          company: j.company || "",
-          location: j.location || "Remote",
-          description: j.description || "",
-          url: j.url || "#",
-          date: j.date || ""
-        })), ...wwrData, ...wnData];
-      } else {
-        const city = cityInput.value;
-        const adzunaURL = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=20&what=${encodeURIComponent(search)}&where=${encodeURIComponent(city)}&content-type=application/json`;
-        const res = await fetch(adzunaURL);
-        const data = await res.json();
-        jobs = data.results.map(j => ({
-          title: j.title,
-          company: j.company.display_name,
-          location: j.location.display_name,
-          description: j.description,
-          url: j.redirect_url,
-          date: j.created
-        }));
+        allRemoteJobs.push(...jobs);
       }
 
-      targetDiv.innerHTML = "";
-      jobs.forEach(j => {
+      // --- Filter by search term ---
+      if (searchTerm) {
+        const regex = new RegExp(searchTerm.split(/\s+/).join("|"), "i");
+        allRemoteJobs = allRemoteJobs.filter(job =>
+          regex.test(job.title) || regex.test(job.description)
+        );
+      }
+
+      // --- Render ---
+      remoteJobsDiv.innerHTML = "";
+      if (!allRemoteJobs.length) {
+        remoteJobsDiv.innerHTML = "<p>No remote jobs found.</p>";
+        return;
+      }
+
+      allRemoteJobs.slice(0, 20).forEach(job => {
         const jobDiv = document.createElement("div");
         jobDiv.className = "job";
         jobDiv.innerHTML = `
-          <div class="job-title">${j.title}</div>
-          <div class="job-company">${j.company}</div>
-          <div class="job-location">${j.location}</div>
-          <div class="job-badges">${getJobBadge(j.date)}</div>
+          <strong>${job.title}</strong>
+          <span class="badge badge-primary">Remote</span><br>
+          ${job.company} – ${job.location}
         `;
-        jobDiv.addEventListener("click", () => openJobModal(j));
-        targetDiv.appendChild(jobDiv);
+        jobDiv.addEventListener("click", () => openJobModal(job));
+        remoteJobsDiv.appendChild(jobDiv);
       });
-    } catch (err) { console.error(err); }
-    finally {
-      if (type === "remote") loadingRemote = false; else loadingLocal = false;
+
+    } catch (err) {
+      console.error("Error fetching remote jobs:", err);
+      remoteJobsDiv.innerHTML = "<p>Error fetching remote jobs.</p>";
+    } finally {
+      loadingRemote = false;
       updateLoadingMessage();
     }
   }
 
-  async function runSearch() {
-    const searchTerm = jobSearchInput.value;
-    const country = countrySelect.value;
-    saveSearchHistory(searchTerm);
-    await fetchJobs({ type: "remote", search: searchTerm, country, targetDiv: remoteJobsDiv });
-    await fetchJobs({ type: "local", search: searchTerm, country, targetDiv: localJobsDiv });
+  // --- Fetch Local Jobs from Adzuna ---
+  async function fetchLocalJobs(searchTerm = "", country = "us") {
+    try {
+      loadingLocal = true;
+      updateLoadingMessage();
+
+      let url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(searchTerm)}`;
+      if (cityInput.value.trim()) url += `&where=${encodeURIComponent(cityInput.value.trim())}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      const jobs = data.results || [];
+
+      localJobsDiv.innerHTML = "";
+      if (!jobs.length) {
+        localJobsDiv.innerHTML = "<p>No local jobs found.</p>";
+        return;
+      }
+
+      jobs.forEach(job => {
+        const jobDiv = document.createElement("div");
+        jobDiv.className = "job";
+        jobDiv.innerHTML = `
+          <strong>${job.title}</strong>
+          <span class="badge badge-success">Local</span><br>
+          ${job.company.display_name} – ${job.location.display_name}
+        `;
+        jobDiv.addEventListener("click", () => openJobModal({
+          title: job.title,
+          company: job.company.display_name,
+          location: job.location.display_name,
+          description: job.description,
+          url: job.redirect_url || job.application_uri
+        }));
+        localJobsDiv.appendChild(jobDiv);
+      });
+
+    } catch (err) {
+      console.error("Error fetching local jobs:", err);
+      localJobsDiv.innerHTML = "<p>Error fetching local jobs.</p>";
+    } finally {
+      loadingLocal = false;
+      updateLoadingMessage();
+    }
   }
 
-  viewJobsBtn.addEventListener("click", () => {
+  // --- Run Search ---
+  function runSearch() {
+    const searchTerm = jobSearchInput.value.trim();
+    const selectedCountry = countrySelect.value || "us";
+
+    fetchRemoteJobs(searchTerm);
+    fetchLocalJobs(searchTerm, selectedCountry);
+  }
+
+  // --- Initialize ---
+  updateSavedJobsUI();
+
+  if (viewJobsBtn) viewJobsBtn.addEventListener("click", () => {
     welcomeScreen.style.display = "none";
     jobBoard.style.display = "block";
-    runSearch();
-    updateSavedJobsUI();
-    updateSearchHistoryUI();
   });
 
-  searchBtn.addEventListener("click", runSearch);
-  jobSearchInput.addEventListener("keypress", (e) => { if (e.key === "Enter") runSearch(); });
+  if (searchBtn) searchBtn.addEventListener("click", runSearch);
+  if (countrySelect) countrySelect.addEventListener("change", runSearch);
+  if (cityInput) {
+    cityInput.addEventListener("input", () => {
+      if (cityInput.value.trim().length > 2) runSearch();
+    });
+  }
 
-  document.getElementById("clear-history-btn").addEventListener("click", () => {
-    localStorage.removeItem("searchHistory");
-    updateSearchHistoryUI();
-  });
+  // --- Initial fetch ---
+  fetchRemoteJobs("");
+  fetchLocalJobs("", "us");
 });
-// Initial UI Updates
-updateSavedJobsUI();
-updateSearchHistoryUI();  
+// --- IGNORE ---
